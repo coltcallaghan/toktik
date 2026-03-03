@@ -89,17 +89,60 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const publishId = initData.data?.publish_id;
 
+    // ── Step 2: Poll for video ID (required for analytics) ─────────────────────
+    // TikTok generates the actual video_id after the video finishes processing
+    // We need this ID to sync engagement metrics later via /api/content/[id]/sync-metrics
+    let videoId: string | null = null;
+    const maxAttempts = 3;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Wait 1, 2, 3 seconds
+
+      const statusRes = await fetch(
+        `https://open.tiktokapis.com/v2/post/publish/status/fetch/?publish_id=${publishId}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${account.tiktok_access_token}`,
+          },
+        }
+      );
+
+      const statusData = await statusRes.json() as any;
+
+      if (statusData.data?.video_id) {
+        videoId = statusData.data.video_id;
+        break;
+      }
+    }
+
     // ── Mark as published in DB ────────────────────────────────────────────────
-    await supabase.from('content').update({
+    const updateData: any = {
       status: 'published',
       published_at: new Date().toISOString(),
       engagement_metrics: {
         ...(metrics ?? {}),
         tiktok_publish_id: publishId,
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
       },
-    }).eq('id', contentId);
+    };
 
-    return NextResponse.json({ success: true, publish_id: publishId });
+    if (videoId) {
+      updateData.engagement_metrics.tiktok_video_id = videoId;
+    }
+
+    await supabase.from('content').update(updateData).eq('id', contentId);
+
+    return NextResponse.json({
+      success: true,
+      publish_id: publishId,
+      video_id: videoId,
+      message: videoId
+        ? 'Published! Metrics will sync automatically.'
+        : 'Published but video ID not yet available. Sync manually with /api/content/[id]/sync-metrics',
+    });
 
   } catch (err) {
     console.error('publish error:', err);
