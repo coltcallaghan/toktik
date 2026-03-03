@@ -122,10 +122,6 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-40">
         <div className="text-center space-y-8">
-          <div className="inline-block bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 px-6 py-2 rounded-full hover:border-blue-500/40 transition-colors">
-            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">✨ AI-Powered Social Media Management</span>
-          </div>
-
           <h1 className="text-5xl sm:text-7xl font-bold tracking-tight max-w-4xl mx-auto leading-tight">
             Create content for <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">all your audiences</span> in seconds
           </h1>
@@ -133,6 +129,10 @@ export default function LandingPage() {
           <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Stop juggling multiple platforms. TokTik's AI generates perfect content for TikTok, YouTube, Instagram, Facebook, Twitter, and LinkedIn—then publishes everywhere at once.
           </p>
+
+          <div className="inline-block bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 px-6 py-2 rounded-full hover:border-blue-500/40 transition-colors">
+            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">✨ AI-Powered Social Media Management</span>
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             <Link href="/signup">
@@ -214,24 +214,36 @@ export default function LandingPage() {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Get from zero to published across 6 platforms in just 4 simple steps</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-4">
+        <div className="hidden md:grid grid-cols-4 gap-8 items-start">
           {[
             { step: '1', title: 'Connect Accounts', desc: 'Link your TikTok, YouTube, Instagram, Facebook, Twitter & LinkedIn with one click' },
             { step: '2', title: 'Create Content', desc: 'Write your ideas or use AI to generate scripts, titles, and captions instantly' },
             { step: '3', title: 'Customize', desc: 'Tailor content for each platform with platform-specific optimizations' },
             { step: '4', title: 'Publish & Track', desc: 'Schedule posts for optimal times and track real-time performance metrics' },
-          ].map((item, idx) => (
-            <div key={item.step} className="relative">
-              <div className="flex flex-col h-full">
-                <div className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white rounded-full w-14 h-14 flex items-center justify-center font-bold text-xl mb-6 flex-shrink-0">
-                  {item.step}
-                </div>
-                <h3 className="font-bold text-lg mb-3">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed flex-grow">{item.desc}</p>
+          ].map((item) => (
+            <div key={item.step} className="flex flex-col items-center gap-4">
+              <div className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white rounded-full w-14 h-14 flex items-center justify-center font-bold text-xl flex-shrink-0">
+                {item.step}
               </div>
-              {idx < 3 && (
-                <div className="hidden md:block absolute top-7 left-full w-6 text-muted-foreground/50 text-2xl font-light">→</div>
-              )}
+              <h3 className="font-bold text-lg text-center">{item.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed text-center line-clamp-4">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="md:hidden grid grid-cols-1 gap-6">
+          {[
+            { step: '1', title: 'Connect Accounts', desc: 'Link your TikTok, YouTube, Instagram, Facebook, Twitter & LinkedIn with one click' },
+            { step: '2', title: 'Create Content', desc: 'Write your ideas or use AI to generate scripts, titles, and captions instantly' },
+            { step: '3', title: 'Customize', desc: 'Tailor content for each platform with platform-specific optimizations' },
+            { step: '4', title: 'Publish & Track', desc: 'Schedule posts for optimal times and track real-time performance metrics' },
+          ].map((item) => (
+            <div key={item.step} className="flex flex-col items-center text-center gap-3">
+              <div className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white rounded-full w-14 h-14 flex items-center justify-center font-bold text-xl flex-shrink-0">
+                {item.step}
+              </div>
+              <h3 className="font-bold text-lg">{item.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
