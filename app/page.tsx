@@ -9,33 +9,39 @@ export default function LandingPage() {
   const features = [
     {
       icon: Sparkles,
-      title: 'AI-Powered Content Generation',
-      description: 'Generate scripts, titles, captions, and hashtags in seconds using Claude AI',
+      title: 'AI Content Generation',
+      description: 'Scripts, titles, captions & hashtags crafted by Claude AI in seconds',
+      color: 'from-blue-500 to-cyan-500',
     },
     {
       icon: Zap,
       title: 'Multi-Platform Publishing',
-      description: 'Post to TikTok, YouTube, Instagram, Facebook, Twitter, and LinkedIn from one place',
+      description: 'TikTok, YouTube, Instagram, Facebook, Twitter, LinkedIn — all from one dashboard',
+      color: 'from-purple-500 to-pink-500',
     },
     {
       icon: BarChart3,
       title: 'Real-Time Analytics',
-      description: 'Track views, likes, comments, and engagement across all your accounts',
+      description: 'Track views, engagement, and performance metrics across all platforms instantly',
+      color: 'from-orange-500 to-red-500',
     },
     {
       icon: Users,
       title: 'Team Collaboration',
-      description: 'Invite team members, assign roles, and collaborate on content',
+      description: 'Invite team members, assign roles, and build together seamlessly',
+      color: 'from-green-500 to-emerald-500',
     },
     {
       icon: Lightbulb,
-      title: 'Smart Suggestions',
-      description: 'AI suggests the perfect username, display name, and niche for new accounts',
+      title: 'Smart Account Setup',
+      description: 'AI-powered suggestions for usernames, display names, and content niches',
+      color: 'from-yellow-500 to-orange-500',
     },
     {
       icon: Lock,
-      title: 'Bank-Level Security',
-      description: 'Encrypted credentials, row-level security, and secure OAuth connections',
+      title: 'Enterprise Security',
+      description: 'Bank-level encryption, OAuth security, and row-level data protection',
+      color: 'from-indigo-500 to-purple-500',
     },
   ];
 
@@ -114,77 +120,87 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
-        <div className="text-center space-y-6">
-          <div className="inline-block bg-primary/10 px-4 py-2 rounded-full">
-            <span className="text-sm font-semibold text-primary">✨ AI-Powered Social Media Management</span>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-40">
+        <div className="text-center space-y-8">
+          <div className="inline-block bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 px-6 py-2 rounded-full hover:border-blue-500/40 transition-colors">
+            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">✨ AI-Powered Social Media Management</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight max-w-3xl mx-auto">
-            Create content for all your social accounts in seconds
+          <h1 className="text-5xl sm:text-7xl font-bold tracking-tight max-w-4xl mx-auto leading-tight">
+            Create content for <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">all your audiences</span> in seconds
           </h1>
 
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Stop juggling multiple platforms. TokTik generates scripts, captions, and handles posting across
-            TikTok, YouTube, Instagram, Facebook, Twitter, and LinkedIn — all powered by AI.
+          <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Stop juggling multiple platforms. TokTik's AI generates perfect content for TikTok, YouTube, Instagram, Facebook, Twitter, and LinkedIn—then publishes everywhere at once.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             <Link href="/signup">
-              <Button size="lg" className="gap-2">
-                Get Started Free <ArrowRight className="h-4 w-4" />
+              <Button size="lg" className="gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-lg px-8 py-6 rounded-lg">
+                Start Free <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
             <Link href="/#how-it-works">
-              <Button size="lg" variant="outline">
-                Watch Demo
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 rounded-lg border-2">
+                See How It Works
               </Button>
             </Link>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            No credit card required. Start generating content in 2 minutes.
+          <p className="text-base text-muted-foreground pt-2">
+            No credit card. No commitments. Free tier includes 20 AI-powered generations.
           </p>
         </div>
 
         {/* Hero Image */}
-        <div className="mt-16 rounded-2xl border border-border overflow-hidden shadow-2xl bg-muted/50">
-          <div className="bg-gradient-to-br from-primary/10 via-background to-primary/5 p-12 h-96 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <Sparkles className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Product screenshot coming soon</p>
+        <div className="mt-20 rounded-2xl border-2 border-border overflow-hidden shadow-2xl bg-gradient-to-br from-blue-500/5 via-background to-cyan-500/5">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-12 h-96 flex items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500 rounded-full blur-3xl"></div>
+            </div>
+            <div className="text-center text-muted-foreground relative z-10">
+              <div className="inline-block p-4 bg-white/5 rounded-lg mb-4">
+                <Sparkles className="h-16 w-16 mx-auto text-blue-400" />
+              </div>
+              <p className="text-lg font-medium">Dashboard Preview</p>
+              <p className="text-sm mt-2 text-muted-foreground">Coming soon</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-2 md:grid-cols-4 gap-8">
-        {stats.map((stat) => (
-          <div key={stat.label} className="text-center">
-            <p className="text-3xl sm:text-4xl font-bold text-primary">{stat.value}</p>
-            <p className="text-sm text-muted-foreground mt-2">{stat.label}</p>
-          </div>
-        ))}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {stats.map((stat) => (
+            <div key={stat.label} className="text-center p-6 rounded-lg bg-card border border-border/50 hover:border-blue-500/30 transition-colors">
+              <p className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{stat.value}</p>
+              <p className="text-sm text-muted-foreground mt-3">{stat.label}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 space-y-16">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl sm:text-4xl font-bold">Everything you need to go viral</h2>
+          <h2 className="text-4xl sm:text-5xl font-bold">Everything creators need</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Built by creators, for creators. All the tools you need to scale your social media presence.
+            Powerful tools designed to help you create more, manage better, and grow faster across all platforms.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <div key={feature.title} className="bg-card rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
-                <Icon className="h-8 w-8 text-primary mb-4" />
+              <div key={feature.title} className="group bg-card rounded-xl border border-border p-7 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <div className={`inline-block p-3 rounded-lg bg-gradient-to-br ${feature.color} mb-4 group-hover:scale-110 transition-transform`}>
+                  <Icon className="h-6 w-6 text-white" />
+                </div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
               </div>
             );
           })}
@@ -192,65 +208,80 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 space-y-16">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl sm:text-4xl font-bold">How it works</h2>
+          <h2 className="text-4xl sm:text-5xl font-bold">How it works</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Get from zero to published across 6 platforms in just 4 simple steps</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-4">
           {[
-            { step: '1', title: 'Connect Accounts', desc: 'Link your TikTok, YouTube, Instagram & more' },
-            { step: '2', title: 'Create or Generate', desc: 'Write content or let AI generate it for you' },
-            { step: '3', title: 'Customize', desc: 'Tailor content for each platform & audience' },
-            { step: '4', title: 'Publish & Analyze', desc: 'Schedule posts and track real-time analytics' },
-          ].map((item) => (
+            { step: '1', title: 'Connect Accounts', desc: 'Link your TikTok, YouTube, Instagram, Facebook, Twitter & LinkedIn with one click' },
+            { step: '2', title: 'Create Content', desc: 'Write your ideas or use AI to generate scripts, titles, and captions instantly' },
+            { step: '3', title: 'Customize', desc: 'Tailor content for each platform with platform-specific optimizations' },
+            { step: '4', title: 'Publish & Track', desc: 'Schedule posts for optimal times and track real-time performance metrics' },
+          ].map((item, idx) => (
             <div key={item.step} className="relative">
-              <div className="bg-primary text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mb-4">
-                {item.step}
+              <div className="flex flex-col h-full">
+                <div className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white rounded-full w-14 h-14 flex items-center justify-center font-bold text-xl mb-6 flex-shrink-0">
+                  {item.step}
+                </div>
+                <h3 className="font-bold text-lg mb-3">{item.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed flex-grow">{item.desc}</p>
               </div>
-              <h3 className="font-semibold mb-2">{item.title}</h3>
-              <p className="text-sm text-muted-foreground">{item.desc}</p>
+              {idx < 3 && (
+                <div className="hidden md:block absolute top-7 left-full w-6 text-muted-foreground/50 text-2xl font-light">→</div>
+              )}
             </div>
           ))}
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 space-y-16">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl sm:text-4xl font-bold">Simple, transparent pricing</h2>
-          <p className="text-lg text-muted-foreground">Start free. Scale as you grow.</p>
+          <h2 className="text-4xl sm:text-5xl font-bold">Pricing that grows with you</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Start free, upgrade when you're ready. No hidden fees.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-6">
           {pricing.map((plan) => (
             <div
               key={plan.name}
-              className={`rounded-lg border-2 p-8 transition-all ${
+              className={`rounded-xl border-2 p-8 transition-all duration-300 ${
                 plan.highlighted
-                  ? 'border-primary bg-primary/5 shadow-lg scale-105'
-                  : 'border-border bg-card hover:border-primary/50'
+                  ? 'border-blue-500 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 shadow-xl transform md:scale-105 ring-1 ring-blue-500/20'
+                  : 'border-border bg-card hover:border-blue-500/50 hover:shadow-lg'
               }`}
             >
-              <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-              <p className="text-muted-foreground text-sm mb-4">{plan.description}</p>
+              {plan.highlighted && (
+                <div className="inline-block bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-1 rounded-full text-xs font-semibold text-white mb-4">
+                  Most Popular
+                </div>
+              )}
 
-              <div className="mb-6">
-                <span className="text-4xl font-bold">{plan.price}</span>
-                {plan.period && <span className="text-muted-foreground text-sm">{plan.period}</span>}
+              <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+              <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
+
+              <div className="mb-8">
+                <span className="text-5xl font-bold">{plan.price}</span>
+                {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
               </div>
 
-              <Link href={plan.name === 'Agency' ? '/contact' : '/signup'}>
-                <Button className="w-full mb-8" variant={plan.highlighted ? 'default' : 'outline'}>
+              <Link href={plan.name === 'Agency' ? '/contact' : '/signup'} className="block mb-8">
+                <Button
+                  className="w-full rounded-lg py-6 text-base font-semibold"
+                  variant={plan.highlighted ? 'default' : 'outline'}
+                >
                   {plan.cta}
                 </Button>
               </Link>
 
-              <ul className="space-y-3">
+              <ul className="space-y-4">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-3">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-sm">{feature}</span>
+                  <li key={feature} className="flex items-start gap-3">
+                    <Check className={`h-5 w-5 shrink-0 mt-0.5 ${plan.highlighted ? 'text-blue-600' : 'text-primary'}`} />
+                    <span className="text-sm leading-relaxed">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -260,19 +291,29 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 rounded-2xl border border-primary/20 p-12 text-center space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-bold">Ready to scale your content?</h2>
-          <p className="text-lg text-muted-foreground">
-            Join 2,500+ creators who are already using TokTik to grow their audiences.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="bg-gradient-to-br from-blue-600/10 via-cyan-600/5 to-blue-600/10 rounded-2xl border-2 border-blue-500/30 p-12 sm:p-16 text-center space-y-8 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-5 pointer-events-none">
+            <div className="absolute top-0 right-0 w-72 h-72 bg-blue-400 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-72 h-72 bg-cyan-400 rounded-full blur-3xl"></div>
+          </div>
+
+          <div className="relative z-10">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-4">Ready to create at scale?</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Join 2,500+ creators already using TokTik to go viral across all platforms. Start free, upgrade anytime.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
             <Link href="/signup">
-              <Button size="lg">Get Started Free</Button>
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-lg px-8 py-6 rounded-lg">
+                Start Free Now
+              </Button>
             </Link>
             <Link href="/contact">
-              <Button size="lg" variant="outline">
-                Schedule Demo
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 rounded-lg border-2">
+                Schedule a Demo
               </Button>
             </Link>
           </div>
