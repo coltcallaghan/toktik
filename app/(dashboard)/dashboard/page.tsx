@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Users, Video, TrendingUp, Activity, Loader2, ExternalLink } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { createClient, type Account, type Content } from '@/lib/supabase';
@@ -30,7 +29,23 @@ export default function DashboardPage() {
 
   const publishedCount = content.filter((c) => c.status === 'published').length;
   const draftCount = content.filter((c) => c.status === 'draft').length;
+  const scheduledCount = content.filter((c) => c.status === 'scheduled').length;
   const totalFollowers = accounts.reduce((sum, a) => sum + (a.followers_count ?? 0), 0);
+
+  // Calculate engagement metrics from published content
+  const publishedContent = content.filter((c) => c.status === 'published');
+  const totalViews = publishedContent.reduce((sum, c) => {
+    const metrics = c.engagement_metrics as Record<string, unknown> | null;
+    return sum + (typeof metrics?.views === 'number' ? metrics.views : 0);
+  }, 0);
+  const totalEngagement = publishedContent.reduce((sum, c) => {
+    const metrics = c.engagement_metrics as Record<string, unknown> | null;
+    const likes = typeof metrics?.likes === 'number' ? metrics.likes : 0;
+    const comments = typeof metrics?.comments === 'number' ? metrics.comments : 0;
+    const shares = typeof metrics?.shares === 'number' ? metrics.shares : 0;
+    return sum + likes + comments + shares;
+  }, 0);
+  const avgEngagementRate = totalViews > 0 ? ((totalEngagement / totalViews) * 100).toFixed(1) : '0';
 
   // Bar chart data — accounts with follower counts
   const chartData = accounts
@@ -45,7 +60,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Accounts</CardTitle>
@@ -56,7 +71,7 @@ export default function DashboardPage() {
               <>
                 <div className="text-2xl font-bold">{accounts.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {accounts.filter((a) => a.tiktok_access_token).length} connected to TikTok
+                  {accounts.filter((a) => a.tiktok_access_token).length} connected
                 </p>
               </>
             )}
@@ -74,7 +89,7 @@ export default function DashboardPage() {
                 <div className="text-2xl font-bold">
                   {totalFollowers >= 1000 ? `${(totalFollowers / 1000).toFixed(1)}K` : totalFollowers.toLocaleString()}
                 </div>
-                <p className="text-xs text-muted-foreground">across all accounts</p>
+                <p className="text-xs text-muted-foreground">across accounts</p>
               </>
             )}
           </CardContent>
@@ -89,7 +104,7 @@ export default function DashboardPage() {
             {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : (
               <>
                 <div className="text-2xl font-bold">{publishedCount}</div>
-                <p className="text-xs text-muted-foreground">{draftCount} drafts pending</p>
+                <p className="text-xs text-muted-foreground">{draftCount} drafts, {scheduledCount} scheduled</p>
               </>
             )}
           </CardContent>
@@ -97,14 +112,31 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Content</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
             <Video className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : (
               <>
-                <div className="text-2xl font-bold">{content.length}</div>
-                <p className="text-xs text-muted-foreground">all time</p>
+                <div className="text-2xl font-bold">
+                  {totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}K` : totalViews.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">published content</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : (
+              <>
+                <div className="text-2xl font-bold">{avgEngagementRate}%</div>
+                <p className="text-xs text-muted-foreground">likes + comments + shares</p>
               </>
             )}
           </CardContent>
@@ -128,6 +160,56 @@ export default function DashboardPage() {
                 <Bar dataKey="followers" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Top performing content */}
+      {!loading && publishedContent.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Performing Content</CardTitle>
+            <CardDescription>Your best-performing published posts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {publishedContent
+                .sort((a, b) => {
+                  const aMetrics = a.engagement_metrics as Record<string, unknown> | null;
+                  const bMetrics = b.engagement_metrics as Record<string, unknown> | null;
+                  const aViews = typeof aMetrics?.views === 'number' ? aMetrics.views : 0;
+                  const bViews = typeof bMetrics?.views === 'number' ? bMetrics.views : 0;
+                  return bViews - aViews;
+                })
+                .slice(0, 5)
+                .map((c) => {
+                  const metrics = c.engagement_metrics as Record<string, unknown> | null;
+                  const views = typeof metrics?.views === 'number' ? metrics.views : 0;
+                  const likes = typeof metrics?.likes === 'number' ? metrics.likes : 0;
+                  const comments = typeof metrics?.comments === 'number' ? metrics.comments : 0;
+                  const shares = typeof metrics?.shares === 'number' ? metrics.shares : 0;
+                  return (
+                    <div key={c.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium truncate">{c.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {new Date(c.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex gap-4 text-xs ml-4">
+                        <div className="text-center">
+                          <p className="font-semibold">{views.toLocaleString()}</p>
+                          <p className="text-muted-foreground">views</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="font-semibold">{(likes + comments + shares).toLocaleString()}</p>
+                          <p className="text-muted-foreground">engagement</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
           </CardContent>
         </Card>
       )}
