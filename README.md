@@ -1,229 +1,125 @@
-# TokTik - AI TikTok Management Dashboard
+# TokTik - AI-Powered Social Media Management Platform
 
-A comprehensive front-end dashboard for managing multiple AI TikTok accounts, with team-based AI agents for automated content creation (scripts, videos, voices) and trend monitoring.
+A Next.js 15 application that helps creators manage, generate, and publish content across multiple social media platforms (TikTok, YouTube, Instagram, Facebook, Twitter, LinkedIn) using AI.
 
-## Features
+## 🚀 Quick Start (5 minutes)
 
-- **Multi-Account Management**: Manage multiple TikTok accounts from a single dashboard
-- **AI Agent Teams**: Organize AI agents into teams for specialized content creation
-  - Script Writer AI
-  - Video Producer
-  - Voice Actor
-  - Trend Detector
-  - Thumbnail Designer
-  - Caption Generator
-- **Content Management**: Track content across drafts, scheduled, and published states
-- **Trend Monitoring**: Real-time trend detection with momentum scores and expiration tracking
-- **Performance Analytics**: View engagement metrics, views, and follower growth
-- **Supabase Integration**: Authentication and data persistence
+### 1. Prerequisites
+- Node.js 18+
+- npm or yarn
+- Supabase account (free tier works)
+- Anthropic API key (for Claude)
 
-## Tech Stack
+### 2. Setup
 
-- **Frontend**: Next.js 15 + React 19
-- **Styling**: Tailwind CSS + Custom UI Components
-- **UI Library**: Custom component library (Shadcn/ui inspired)
-- **Charts**: Recharts
-- **Icons**: Lucide React
-- **Backend**: Supabase (Auth + Database)
-- **Language**: TypeScript
+```bash
+# Clone repository
+git clone <repo>
+cd toktik
 
-## Getting Started
+# Install dependencies
+npm install
 
-### Prerequisites
+# Create .env.local
+cp .env.example .env.local
 
-- Node.js 18+ and npm
-- Supabase account (free tier available at https://supabase.com)
+# Fill in required env vars (see ENVIRONMENT_SETUP.md)
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+ANTHROPIC_API_KEY=...
 
-### Installation
+# Run migrations (first time only)
+npx supabase migration up
 
-1. Clone or download this project
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+# Start dev server
+npm run dev
 
-3. Create a `.env.local` file with your Supabase credentials:
-   ```bash
-   cp .env.local.example .env.local
-   ```
-
-4. Fill in your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-   ```
-
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-6. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Project Structure
-
-```
-toktik/
-├── app/
-│   ├── dashboard/        # Dashboard overview
-│   ├── accounts/         # Account management
-│   ├── content/          # Content library
-│   ├── teams/            # AI team management
-│   ├── trends/           # Trend monitoring
-│   ├── settings/         # User settings
-│   ├── layout.tsx        # Root layout
-│   ├── globals.css       # Global styles
-│   └── page.tsx          # Home redirect
-├── components/
-│   ├── ui/               # Reusable UI components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── input.tsx
-│   │   └── tabs.tsx
-│   └── layout/
-│       ├── sidebar.tsx   # Navigation sidebar
-│       └── topbar.tsx    # Top navigation bar
-├── lib/
-│   └── supabase.ts       # Supabase client & types
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-└── next.config.ts
+# Open http://localhost:3000
 ```
 
-## Setting Up Supabase Database
+### 3. Login
+- Email: test@example.com  
+- Password: (set in Supabase)
+- Or sign up for new account
 
-Create the following tables in your Supabase project:
+## 📚 Documentation Map
 
-### 1. Accounts Table
-```sql
-create table accounts (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users not null,
-  platform_username text not null,
-  platform_id text not null,
-  team_id uuid references teams,
-  followers_count integer default 0,
-  status text default 'active' check (status in ('active', 'paused', 'inactive')),
-  created_at timestamp default now(),
-  updated_at timestamp default now()
-);
-```
+**For Getting Started:**
+- ENVIRONMENT_SETUP.md — Local dev setup, environment variables
+- DATABASE_SCHEMA.md — Database tables, fields, relationships
 
-### 2. Teams Table
-```sql
-create table teams (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users not null,
-  name text not null,
-  description text,
-  members text[] default array[]::text[],
-  created_at timestamp default now(),
-  updated_at timestamp default now()
-);
-```
+**For Features:**
+- QUICK_START_ACCOUNT_SUGGESTIONS.md — AI-powered account setup
+- ACCOUNT_SETUP_SUGGESTIONS.md — Feature details
+- ACCOUNT_SETUP_VISUAL_GUIDE.md — UI mockups and flows
 
-### 3. Content Table
-```sql
-create table content (
-  id uuid primary key default gen_random_uuid(),
-  account_id uuid references accounts not null,
-  team_id uuid references teams,
-  title text not null,
-  script text not null,
-  video_url text,
-  status text default 'draft' check (status in ('draft', 'scheduled', 'published', 'failed')),
-  scheduled_at timestamp,
-  published_at timestamp,
-  engagement_metrics jsonb,
-  created_at timestamp default now(),
-  updated_at timestamp default now()
-);
-```
+**For Architecture:**
+- ARCHITECTURE.md — System design, data flow
+- ACCOUNT_SUGGESTIONS_ARCHITECTURE.md — Account suggestions internals
+- API_REFERENCE.md — All endpoints documented
 
-### 4. Trends Table
-```sql
-create table trends (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users not null,
-  trend_name text not null,
-  category text not null,
-  momentum numeric default 0,
-  description text,
-  detected_at timestamp default now(),
-  expires_at timestamp
-);
-```
+**For Development:**
+- CONTRIBUTING.md — Code standards, commit conventions
+- TROUBLESHOOTING.md — Common issues and solutions
+- DEPLOYMENT.md — Production checklist
 
-## Features in Detail
+**For Strategy:**
+- MULTI_ACCOUNT_STRATEGY.md — Phone number workarounds, account management
 
-### Dashboard
-- Real-time metrics overview
-- Account performance charts
-- Quick access to active accounts
-- View/Edit account status
+## 🎯 Core Features
 
-### Accounts Management
-- Add/remove TikTok accounts
-- Search and filter accounts
-- View followers and engagement
-- Assign accounts to teams
+### 1. Multi-Platform OAuth
+Connect accounts from 6 platforms with secure token storage.
 
-### Content Library
-- Create new content with AI agents
-- Manage drafts, scheduled, and published content
-- Track performance metrics
-- Bulk scheduling
+### 2. Content Generation
+- AI-powered script, title, and caption generation
+- Bulk generation for multiple accounts
+- A/B testing framework
 
-### AI Teams
-- Create specialized teams of AI agents
-- Available agents:
-  - Script Writer: Creates hooks and engaging scripts
-  - Video Producer: Generates video content
-  - Voice Actor: Text-to-speech generation
-  - Trend Detector: Identifies trending topics
-  - Thumbnail Designer: Creates thumbnails
-  - Caption Generator: Auto-generates captions
+### 3. Content Management
+- Draft → Schedule → Publish workflow
+- Engagement metrics tracking
+- Content repurposing across platforms
 
-### Trend Monitoring
-- Real-time trend detection
-- Momentum scoring system
-- Expiration tracking
-- One-click content creation for trends
+### 4. Analytics & Trends
+- Trend detection and analysis
+- Engagement rate calculation
+- Per-account performance tracking
 
-### Settings
-- Account management
-- API key configuration
-- Connected services
-- Notification preferences
+### 5. Team Collaboration
+- Team creation and member management
+- Role-based access
+- Shared content and analytics
 
-## Next Steps
+### 6. Account Setup (NEW!)
+- AI-powered username/display name suggestions
+- Platform-specific recommendations
+- Niche auto-detection
 
-1. **Implement Authentication**: Add Supabase Auth UI components
-2. **Connect AI APIs**: Integrate with Claude API for script generation, video synthesis, and trend analysis
-3. **Real-time Updates**: Add real-time listeners for content and trend updates
-4. **Scheduling System**: Implement background jobs for content scheduling and posting
-5. **Performance Metrics**: Add real data fetching from TikTok API
-6. **Video Preview**: Add video player component for content preview
+## 🏗️ Stack
 
-## Environment Variables
+- **Frontend**: React 19 + Next.js 15 + TypeScript
+- **Styling**: Tailwind CSS + custom UI components
+- **Database**: Supabase PostgreSQL with RLS
+- **Auth**: Supabase Auth + OAuth
+- **AI**: Claude Haiku 4.5 (Anthropic)
+- **Deployment**: Vercel
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=       # Your Supabase project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=  # Your Supabase anon key
-```
+## 🔗 Quick Links
 
-## Scripts
+- [README.md](README.md) — This file
+- [MEMORY.md](.claude/projects/-Users-colt-hasc-Documents-toktik/memory/MEMORY.md) — Project summary
+- [QUICK_START_ACCOUNT_SUGGESTIONS.md](QUICK_START_ACCOUNT_SUGGESTIONS.md) — New feature guide
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
+## 🐛 Common Issues
 
-## License
+**Unauthorized on page load** → Check middleware.ts
+**API errors 401/403** → Verify SUPABASE_SERVICE_ROLE_KEY
+**DB migrations fail** → Run `npx supabase migration up`
+**OAuth redirect error** → Check NEXT_PUBLIC_APP_URL
 
-MIT
+See TROUBLESHOOTING.md for complete troubleshooting guide.
 
-## Support
+---
 
-For issues and questions, check the [Supabase documentation](https://supabase.com/docs) and [Next.js documentation](https://nextjs.org/docs).
+**Last Updated**: March 2026
