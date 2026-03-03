@@ -15,6 +15,7 @@ import { isOAuthConnected as checkOAuthConnected, isTokenExpiredCheck } from '@/
 import Image from 'next/image';
 import { AccountThemePanel } from '@/components/account-theme-panel';
 import { AccountCredentialsPanel } from '@/components/account-credentials-panel';
+import { AccountSetupSuggestions } from '@/components/account-setup-suggestions';
 import clsx from 'clsx';
 
 /* ------------------------------------------------------------------ */
@@ -113,6 +114,8 @@ function AccountsPageInner() {
   const [addNiche, setAddNiche] = useState('');
   const [saving, setSaving] = useState(false);
   const [showConnect, setShowConnect] = useState(false);
+  const [addMode, setAddMode] = useState<'manual' | 'suggestions'>('suggestions');
+  const [addDisplayName, setAddDisplayName] = useState('');
   const searchParams = useSearchParams();
 
   const justConnected = searchParams.get('connected') === 'true';
@@ -294,13 +297,34 @@ function AccountsPageInner() {
 
       {/* Add Account Form */}
       {showAdd && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Add Social Account</CardTitle>
-            <CardDescription>Manually add an account from any supported platform</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleAddAccount} className="space-y-4">
+        <div className="space-y-4">
+          {/* Mode selector */}
+          <div className="flex gap-2 border-b">
+            <button
+              onClick={() => setAddMode('suggestions')}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                addMode === 'suggestions'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              ✨ AI Suggestions
+            </button>
+            <button
+              onClick={() => setAddMode('manual')}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                addMode === 'manual'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Manual Entry
+            </button>
+          </div>
+
+          {/* AI Suggestions Mode */}
+          {addMode === 'suggestions' && (
+            <div className="space-y-4">
               {/* Platform selector */}
               <div>
                 <label className="mb-2 block text-sm font-medium">Platform</label>
@@ -327,35 +351,112 @@ function AccountsPageInner() {
                   })}
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+              <AccountSetupSuggestions
+                platform={addPlatform}
+                niche={addNiche}
+                selectedUsername={addUsername}
+                selectedDisplayName={addDisplayName}
+                onSelect={(data) => {
+                  setAddUsername(data.username);
+                  if (data.display_name) setAddDisplayName(data.display_name);
+                  if (data.niche) setAddNiche(data.niche);
+                }}
+              />
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAddAccount(e);
+                }}
+                className="space-y-3 rounded-lg border border-border bg-muted/30 p-4"
+              >
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Username</label>
-                  <Input
-                    placeholder={`@username`}
-                    value={addUsername}
-                    onChange={(e) => setAddUsername(e.target.value)}
-                    required
-                  />
+                  <label className="mb-1 block text-xs font-semibold text-muted-foreground uppercase">Preview</label>
+                  <div className="rounded-lg bg-card p-3 border border-border">
+                    <p className="font-medium">@{addUsername || 'username'}</p>
+                    {addDisplayName && <p className="text-sm text-muted-foreground">{addDisplayName}</p>}
+                    {addNiche && <p className="text-xs text-muted-foreground">📍 {addNiche}</p>}
+                  </div>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Niche (optional)</label>
-                  <Input
-                    placeholder="e.g. Fitness, Tech, Cooking"
-                    value={addNiche}
-                    onChange={(e) => setAddNiche(e.target.value)}
-                  />
+
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={saving || !addUsername.trim()} className="flex-1">
+                    {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Add Account
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => setShowAdd(false)}>Cancel</Button>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" disabled={saving || !addUsername.trim()}>
-                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Add Account
-                </Button>
-                <Button type="button" variant="ghost" onClick={() => setShowAdd(false)}>Cancel</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+              </form>
+            </div>
+          )}
+
+          {/* Manual Mode */}
+          {addMode === 'manual' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Manually Add Account</CardTitle>
+                <CardDescription>Enter your account details directly</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleAddAccount} className="space-y-4">
+                  {/* Platform selector */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">Platform</label>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                      {ALL_PLATFORMS.map((p) => {
+                        const cfg = PLATFORMS[p];
+                        const Icon = cfg.icon;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setAddPlatform(p)}
+                            className={clsx(
+                              'flex flex-col items-center gap-1 rounded-lg border-2 p-3 transition-all',
+                              addPlatform === p
+                                ? `${cfg.accent} ${cfg.bg} ring-1 ring-primary/20`
+                                : 'border-border hover:bg-muted/50'
+                            )}
+                          >
+                            <Icon className={clsx('h-5 w-5', cfg.color)} />
+                            <span className="text-xs font-medium">{cfg.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">Username</label>
+                      <Input
+                        placeholder={`@username`}
+                        value={addUsername}
+                        onChange={(e) => setAddUsername(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium">Niche (optional)</label>
+                      <Input
+                        placeholder="e.g. Fitness, Tech, Cooking"
+                        value={addNiche}
+                        onChange={(e) => setAddNiche(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={saving || !addUsername.trim()}>
+                      {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Add Account
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => setShowAdd(false)}>Cancel</Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Platform tabs + search */}
