@@ -92,7 +92,7 @@ export function Sidebar() {
           onClick={async () => {
             const supabase = createClient();
             await supabase.auth.signOut();
-            router.push('/login');
+            router.push('/');
           }}
           className="flex w-full items-center gap-3 rounded-md px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
         >
