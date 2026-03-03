@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +30,31 @@ export default function LoginPage() {
     } else {
       router.push('/dashboard');
       router.refresh();
+    }
+
+    setLoading(false);
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?type=recovery`,
+    });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      setResetSent(true);
+      setTimeout(() => setResetSent(false), 5000);
     }
 
     setLoading(false);
@@ -65,7 +91,16 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="password">Password</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium" htmlFor="password">Password</label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-primary hover:underline font-medium"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -75,6 +110,12 @@ export default function LoginPage() {
                 required
               />
             </div>
+
+            {resetSent && (
+              <div className="rounded-md bg-green-50 dark:bg-green-950/30 px-4 py-3 text-sm text-green-700 dark:text-green-400">
+                Check your email for a password reset link!
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>

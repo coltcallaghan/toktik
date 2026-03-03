@@ -27,8 +27,17 @@ export async function middleware(request: NextRequest) {
 
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup');
+  const isPublicRoute =
+    request.nextUrl.pathname === '/' ||
+    request.nextUrl.pathname.startsWith('/about') ||
+    request.nextUrl.pathname.startsWith('/blog') ||
+    request.nextUrl.pathname.startsWith('/contact') ||
+    request.nextUrl.pathname.startsWith('/privacy') ||
+    request.nextUrl.pathname.startsWith('/terms') ||
+    request.nextUrl.pathname.startsWith('/status') ||
+    request.nextUrl.pathname.startsWith('/api-docs');
 
-  if (!user && !isAuthRoute) {
+  if (!user && !isAuthRoute && !isPublicRoute) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

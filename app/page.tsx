@@ -135,9 +135,11 @@ export default function LandingPage() {
                 Get Started Free <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline">
-              Watch Demo
-            </Button>
+            <Link href="/#how-it-works">
+              <Button size="lg" variant="outline">
+                Watch Demo
+              </Button>
+            </Link>
           </div>
 
           <p className="text-sm text-muted-foreground">
@@ -167,7 +169,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
         <div className="text-center space-y-4">
           <h2 className="text-3xl sm:text-4xl font-bold">Everything you need to go viral</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -190,7 +192,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
         <div className="text-center space-y-4">
           <h2 className="text-3xl sm:text-4xl font-bold">How it works</h2>
         </div>
@@ -214,7 +216,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
         <div className="text-center space-y-4">
           <h2 className="text-3xl sm:text-4xl font-bold">Simple, transparent pricing</h2>
           <p className="text-lg text-muted-foreground">Start free. Scale as you grow.</p>
@@ -238,9 +240,11 @@ export default function LandingPage() {
                 {plan.period && <span className="text-muted-foreground text-sm">{plan.period}</span>}
               </div>
 
-              <Button className="w-full mb-8" variant={plan.highlighted ? 'default' : 'outline'}>
-                {plan.cta}
-              </Button>
+              <Link href={plan.name === 'Agency' ? '/contact' : '/signup'}>
+                <Button className="w-full mb-8" variant={plan.highlighted ? 'default' : 'outline'}>
+                  {plan.cta}
+                </Button>
+              </Link>
 
               <ul className="space-y-3">
                 {plan.features.map((feature) => (
@@ -266,9 +270,11 @@ export default function LandingPage() {
             <Link href="/signup">
               <Button size="lg">Get Started Free</Button>
             </Link>
-            <Button size="lg" variant="outline">
-              Schedule Demo
-            </Button>
+            <Link href="/contact">
+              <Button size="lg" variant="outline">
+                Schedule Demo
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -276,45 +282,33 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-border mt-20 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-8 mb-8">
             <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Features</a></li>
-                <li><a href="#" className="hover:text-foreground">Pricing</a></li>
-                <li><a href="#" className="hover:text-foreground">Security</a></li>
-              </ul>
+              <h4 className="font-semibold mb-4">TokTik</h4>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                AI-powered social media management for creators. Generate content once, post everywhere.
+              </p>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground">About</a></li>
-                <li><a href="#" className="hover:text-foreground">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Privacy</a></li>
-                <li><a href="#" className="hover:text-foreground">Terms</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Connect</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Twitter</a></li>
-                <li><a href="#" className="hover:text-foreground">Discord</a></li>
-                <li><a href="#" className="hover:text-foreground">GitHub</a></li>
-              </ul>
+            <div className="flex flex-col sm:flex-row gap-8">
+              <div>
+                <h4 className="font-semibold mb-3 text-sm">Quick Links</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li><a href="/#features" className="hover:text-foreground transition-colors">Features</a></li>
+                  <li><a href="/#pricing" className="hover:text-foreground transition-colors">Pricing</a></li>
+                  <li><a href="/contact" className="hover:text-foreground transition-colors">Contact</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-3 text-sm">Legal</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li><a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a></li>
+                  <li><a href="/terms" className="hover:text-foreground transition-colors">Terms</a></li>
+                </ul>
+              </div>
             </div>
           </div>
-          <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between text-sm text-muted-foreground">
+          <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
             <p>&copy; 2026 TokTik. All rights reserved.</p>
-            <div className="flex gap-6 mt-4 sm:mt-0">
-              <a href="#" className="hover:text-foreground">Status</a>
-              <a href="#" className="hover:text-foreground">API Docs</a>
-            </div>
           </div>
         </div>
       </footer>
