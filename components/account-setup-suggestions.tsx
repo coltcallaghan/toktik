@@ -202,14 +202,17 @@ export function AccountSetupSuggestions({
                 {suggestions.niches.map((niche, idx) => (
                   <button
                     key={idx}
-                    onClick={() => onSelect({
-                      username: selectedUsername || suggestions.usernames[0],
-                      display_name: selectedDisplayName || suggestions.display_names[0],
-                      niche,
-                    })}
+                    onClick={() => {
+                      setCustomNiche(niche);
+                      onSelect({
+                        username: selectedUsername || suggestions.usernames[0],
+                        display_name: selectedDisplayName || suggestions.display_names[0],
+                        niche,
+                      });
+                    }}
                     className={clsx(
-                      'rounded-full px-3 py-1.5 text-sm font-medium transition-all',
-                      customNiche.toLowerCase() === niche.toLowerCase()
+                      'rounded-full px-3 py-1.5 text-sm font-medium transition-all cursor-pointer',
+                      customNiche === niche
                         ? `${colors.bg} ${colors.text} ring-1 ring-primary/40`
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     )}
