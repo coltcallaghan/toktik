@@ -3,8 +3,8 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'TokTik - AI TikTok Management Dashboard',
-  description: 'Manage multiple AI TikTok accounts with automated content creation',
+  title: 'AudienceAI - AI Social Media Management Dashboard',
+  description: 'Manage multiple AI social media accounts with automated content creation',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

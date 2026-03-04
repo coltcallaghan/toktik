@@ -1,5 +1,5 @@
 -- ============================================================
--- Notifications table for TokTik dashboard
+-- Notifications table for AudienceAI dashboard
 -- ============================================================
 
 create table if not exists public.notifications (

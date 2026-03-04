@@ -1,6 +1,6 @@
 # Database Schema
 
-Complete Supabase PostgreSQL schema for TokTik.
+Complete Supabase PostgreSQL schema for AudienceAI.
 
 ## Tables Overview
 

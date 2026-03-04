@@ -1,6 +1,6 @@
 # Multi-Platform Analytics & Engagement Metrics
 
-This document explains how TokTik handles engagement metrics across all supported platforms: **TikTok, YouTube, Instagram, Facebook, Twitter/X, and LinkedIn**.
+This document explains how AudienceAI handles engagement metrics across all supported platforms: **TikTok, YouTube, Instagram, Facebook, Twitter/X, and LinkedIn**.
 
 ## 📊 Engagement Metrics Structure
 
@@ -36,7 +36,7 @@ When you publish content (via `/api/content/[id]/publish`):
 ```
 ┌─ User clicks "Publish"
 │
-├─ TokTik posts video to platform's API
+├─ AudienceAI posts video to platform's API
 │  ├─ TikTok: `POST /v2/post/publish/video/init/` → returns publish_id → polls for video_id
 │  ├─ YouTube: Video uploaded as draft
 │  ├─ Instagram: Media item created

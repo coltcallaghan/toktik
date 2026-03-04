@@ -1,4 +1,4 @@
--- TokTik Initial Schema
+-- AudienceAI Initial Schema
 -- Run this once in your Supabase SQL editor
 
 -- ============================================================

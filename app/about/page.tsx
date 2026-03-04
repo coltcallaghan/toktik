@@ -21,9 +21,9 @@ export default function AboutPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="space-y-12">
           <section>
-            <h1 className="text-4xl font-bold mb-4">About TokTik</h1>
+            <h1 className="text-4xl font-bold mb-4">About AudienceAI</h1>
             <p className="text-lg text-muted-foreground">
-              TokTik is an AI-powered platform designed to help creators manage, generate, and publish content across multiple social media platforms effortlessly.
+              AudienceAI is an AI-powered platform designed to help creators manage, generate, and publish content across multiple social media platforms effortlessly.
             </p>
           </section>
 
@@ -35,7 +35,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="text-3xl font-bold mb-6">Why TokTik?</h2>
+            <h2 className="text-3xl font-bold mb-6">Why AudienceAI?</h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="bg-card rounded-lg border border-border p-6">
                 <h3 className="font-semibold mb-2">⚡ Time Savings</h3>
@@ -67,10 +67,10 @@ export default function AboutPage() {
           <section>
             <h2 className="text-3xl font-bold mb-6">Our Story</h2>
             <p className="text-lg text-muted-foreground mb-4">
-              TokTik was born from the frustration of managing multiple social media accounts. Our founder realized that creators were spending more time managing platforms than actually creating content. We set out to change that.
+              AudienceAI was born from the frustration of managing multiple social media accounts. Our founder realized that creators were spending more time managing platforms than actually creating content. We set out to change that.
             </p>
             <p className="text-lg text-muted-foreground mb-4">
-              Today, TokTik is used by 2,500+ creators, helping them manage over 500K+ pieces of content with a combined 50M+ engagement.
+              Today, AudienceAI is used by 2,500+ creators, helping them manage over 500K+ pieces of content with a combined 50M+ engagement.
             </p>
           </section>
 
@@ -87,7 +87,7 @@ export default function AboutPage() {
 
           <section className="bg-card rounded-lg border border-border p-8 text-center space-y-4">
             <h2 className="text-2xl font-bold">Ready to Get Started?</h2>
-            <p className="text-muted-foreground">Join thousands of creators using TokTik to grow their audiences.</p>
+            <p className="text-muted-foreground">Join thousands of creators using AudienceAI to grow their audiences.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/signup">
                 <Button size="lg">Get Started Free</Button>

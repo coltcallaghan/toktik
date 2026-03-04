@@ -2,7 +2,7 @@
 
 The challenge: Most social platforms (TikTok, YouTube, Instagram, etc.) require a unique phone number for account verification. Creating multiple accounts for one user is difficult without multiple phone numbers.
 
-This guide covers **legitimate workarounds** and **best practices** for managing multiple accounts within TokTik.
+This guide covers **legitimate workarounds** and **best practices** for managing multiple accounts within AudienceAI.
 
 ## 📋 Overview of Solutions
 
@@ -35,22 +35,22 @@ Instead of creating new accounts, connect existing accounts via OAuth.
    └─ account2@gmail.com
    └─ account3@gmail.com
 
-2. Log into TokTik once
+2. Log into AudienceAI once
 3. Click "Connect TikTok Account"
 4. OAuth redirects to TikTok login
 5. Enter account1 credentials
-6. TokTik stores OAuth token for account1
+6. AudienceAI stores OAuth token for account1
 7. Repeat for account2 and account3
 
 Result: 3 accounts managed from 1 TokTok user
 No extra phone numbers needed!
 ```
 
-### Implementation in TokTik
+### Implementation in AudienceAI
 
 **Status:** ✅ Already implemented!
 
-Your TokTik already supports this via:
+Your AudienceAI already supports this via:
 - `POST /api/auth/tiktok` — OAuth flow
 - `POST /api/auth/tiktok/callback` — Token storage
 - Can repeat for multiple existing accounts
@@ -70,14 +70,14 @@ Your TokTik already supports this via:
 ```
 Scenario: Agency with 3 creators, each with their own TikTok account
 
-TokTik User (Agency Owner)
+AudienceAI User (Agency Owner)
   └─ Team: "Marketing Team"
       ├─ Creator 1 (john@example.com) — owns TikTok @creator1
       ├─ Creator 2 (jane@example.com) — owns TikTok @creator2
       └─ Creator 3 (mike@example.com) — owns TikTok @creator3
 
 Each creator:
-1. Signs up to TokTik individually
+1. Signs up to AudienceAI individually
 2. Connects their own TikTok account via OAuth
 3. Manager invites them to shared Team
 4. Team members can collaborate on content
@@ -85,11 +85,11 @@ Each creator:
 Result: Multiple accounts without needing multiple phone numbers
 ```
 
-### Implementation in TokTik
+### Implementation in AudienceAI
 
 **Status:** ✅ Partially implemented!
 
-Your TokTik has:
+Your AudienceAI has:
 - `teams` table for team management
 - `POST /api/teams/[id]/members` for adding team members
 - RLS ensures team members only see their own content
@@ -120,7 +120,7 @@ Implementation:
 3. Configure webhook to receive SMS
 4. Automate account creation (optional)
 
-For TokTik:
+For AudienceAI:
 - Store Twilio number in account.phone
 - When verification SMS arrives, capture code
 - Auto-fill or notify user
@@ -164,7 +164,7 @@ Caution: Some platforms (TikTok) may flag/ban accounts created this way
 
 ## ⚙️ Solution 4: Encrypted Credential Storage (TECHNICAL)
 
-**Your TokTik already has this built-in!**
+**Your AudienceAI already has this built-in!**
 
 ### Current Implementation
 
@@ -295,10 +295,10 @@ Cost: Free
 Problem: I have 3 TikTok accounts (gaming, cooking, fitness)
 
 Solution: OAuth Method
-├─ Sign up to TokTik once
+├─ Sign up to AudienceAI once
 ├─ Click "Connect TikTok" 3 times
 ├─ Enter each TikTok account's credentials
-└─ Manage all 3 from TokTik dashboard
+└─ Manage all 3 from AudienceAI dashboard
 
 Result: ✅ No extra phone numbers needed
 Effort: 5 minutes
@@ -310,9 +310,9 @@ Effort: 5 minutes
 Problem: Managing 15 client TikTok accounts
 
 Solution: Team Collaboration
-├─ Owner creates TokTik account
+├─ Owner creates AudienceAI account
 ├─ For each client:
-│  ├─ Client (or manager) signs up to TokTik
+│  ├─ Client (or manager) signs up to AudienceAI
 │  ├─ Client connects their TikTok via OAuth
 │  ├─ Owner invites them to "Clients" team
 │  └─ Team can collaborate on content
@@ -331,8 +331,8 @@ Solution: Virtual Numbers + OAuth
 ├─ Get 5 Twilio numbers ($10/mo)
 ├─ Create new TikTok accounts
 ├─ Use Twilio numbers for SMS verification
-├─ Import to TokTik via OAuth
-└─ Store credentials encrypted in TokTik
+├─ Import to AudienceAI via OAuth
+└─ Store credentials encrypted in AudienceAI
 
 Result: ✅ Legitimate, traceable, compliant
 Effort: 1 hour setup + 5 minutes per account
@@ -367,16 +367,16 @@ Sharing passwords between team members in plain text:
 - Security risk
 - No audit trail
 - Can't revoke individual access
-- Use TokTik's encrypted storage instead!
+- Use AudienceAI's encrypted storage instead!
 ```
 
 ---
 
-## 🛠️ TokTik Features to Leverage
+## 🛠️ AudienceAI Features to Leverage
 
 ### 1. Encrypted Credential Storage
 
-Your TokTik already has secure credential encryption!
+Your AudienceAI already has secure credential encryption!
 
 ```typescript
 // Storing credentials
@@ -393,7 +393,7 @@ PUT /api/accounts/[id]/credentials
 
 ### 2. OAuth for All Platforms
 
-TokTik supports OAuth for all 6 platforms:
+AudienceAI supports OAuth for all 6 platforms:
 - TikTok ✅
 - YouTube ✅
 - Instagram ✅

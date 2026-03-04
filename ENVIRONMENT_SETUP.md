@@ -1,6 +1,6 @@
 # Environment Setup Guide
 
-Complete guide to setting up your local development environment for TokTik.
+Complete guide to setting up your local development environment for AudienceAI.
 
 ## Prerequisites
 

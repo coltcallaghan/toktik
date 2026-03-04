@@ -25,7 +25,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-2xl font-semibold text-foreground mb-4">1. Introduction</h2>
             <p>
-              TokTik ("we," "us," "our," or "Company") operates the TokTik website and application. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our service and the choices you have associated with that data.
+              AudienceAI ("we," "us," "our," or "Company") operates the AudienceAI website and application. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our service and the choices you have associated with that data.
             </p>
           </section>
 
@@ -59,7 +59,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-2xl font-semibold text-foreground mb-4">5. Contact Us</h2>
             <p>
-              If you have any questions about this Privacy Policy, please contact us at privacy@toktik.com
+              If you have any questions about this Privacy Policy, please contact us at privacy@audienceai.io
             </p>
           </section>
 

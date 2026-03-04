@@ -1,6 +1,6 @@
-# Contributing to TokTik
+# Contributing to AudienceAI
 
-Guidelines for developers contributing to the TokTik project.
+Guidelines for developers contributing to the AudienceAI project.
 
 ## Code Style
 

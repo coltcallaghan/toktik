@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import RunwayML from '@runwayml/sdk';
+import Anthropic from '@anthropic-ai/sdk';
+import { getUserApiKey } from '@/app/api/user-api-keys/route';
 
 /* ── POST /api/content/[id]/generate-video ────────────────────── */
 /* Initiates AI video generation for a content item.                */
@@ -36,11 +39,17 @@ export async function POST(
 
     const body = await req.json();
     const provider: string = body.provider ?? 'creatomate';
-    const style: string = body.style ?? 'talking_head';
-    const avatarId: string = body.avatar_id ?? 'default';
+    const avatarId: string = body.avatar_id ?? 'Abigail_expressive_2024112501';
+    const voiceId: string = body.voice_id ?? 'f38a635bee7a4d1f9b0a654a31d050d2';
 
-    const heygenKey = process.env.HEYGEN_API_KEY;
-    const runwayKey = process.env.RUNWAY_API_KEY;
+    // User keys take priority over server env vars
+    const [userRunway, userHeygen] = await Promise.all([
+      getUserApiKey(user.id, 'runway'),
+      getUserApiKey(user.id, 'heygen'),
+    ]);
+
+    const heygenKey = userHeygen ?? process.env.HEYGEN_API_KEY;
+    const runwayKey = userRunway ?? process.env.RUNWAY_API_KEY;
     const creatomateKey = process.env.CREATOMATE_API_KEY;
 
     // Update content to "generating" state
@@ -76,7 +85,7 @@ export async function POST(
               voice: {
                 type: 'text',
                 input_text: scriptText.slice(0, 1500),
-                voice_id: '1bd001e7e50f421d891986aad5c21083',
+                voice_id: voiceId,
               },
             },
           ],
@@ -102,10 +111,48 @@ export async function POST(
     }
 
     if (provider === 'runway' && runwayKey) {
+      // Use Claude to turn the script into a concise visual video prompt
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const promptRes = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 120,
+        messages: [{
+          role: 'user',
+          content: `Convert this TikTok script into a short visual video prompt (max 100 words) for an AI video generator. Describe ONLY the visuals — dynamic scenes, movement, setting, mood, colours. No text, no narration, no avatars. Make it TikTok-native and energetic. Output the prompt only, no explanation.\n\nTitle: ${content.title}\nScript: ${(content.script ?? '').slice(0, 600)}`,
+        }],
+      });
+
+      const visualPrompt = (promptRes.content[0] as { text: string }).text.trim();
+
+      const runway = new RunwayML({ apiKey: runwayKey });
+
+      const task = await runway.textToVideo.create({
+        model: 'gen4.5',
+        promptText: visualPrompt,
+        ratio: '720:1280', // 9:16 vertical for TikTok
+        duration: 5,
+      });
+
+      // Save task ID so we can poll later
+      await supabase
+        .from('content')
+        .update({
+          engagement_metrics: {
+            ...(content.engagement_metrics as Record<string, unknown> ?? {}),
+            video_status: 'processing',
+            video_provider: 'runway',
+            runway_task_id: task.id,
+            runway_prompt: visualPrompt,
+          },
+        })
+        .eq('id', id);
+
       return NextResponse.json({
         provider: 'runway',
         status: 'processing',
-        message: 'Runway ML video generation initiated. This may take several minutes.',
+        task_id: task.id,
+        prompt_used: visualPrompt,
+        message: 'Runway Gen-4 video generation started. Takes 2-5 minutes.',
       });
     }
 

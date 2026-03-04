@@ -93,7 +93,7 @@ export default function LandingPage() {
   ];
 
   const stats = [
-    { label: 'Creators Using TokTik', value: '2,500+' },
+    { label: 'Creators Using AudienceAI', value: '2,500+' },
     { label: 'Posts Generated', value: '500K+' },
     { label: 'Total Engagement', value: '50M+' },
     { label: 'Platforms Supported', value: '6' },
@@ -106,7 +106,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">TokTik</span>
+            <span className="text-2xl font-bold">AudienceAI</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login">
@@ -127,7 +127,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Stop juggling multiple platforms. TokTik's AI generates perfect content for TikTok, YouTube, Instagram, Facebook, Twitter, and LinkedIn—then publishes everywhere at once.
+            Stop juggling multiple platforms. AudienceAI generates perfect content for TikTok, YouTube, Instagram, Facebook, Twitter, and LinkedIn—then publishes everywhere at once.
           </p>
 
           <div className="inline-block bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 px-6 py-2 rounded-full hover:border-blue-500/40 transition-colors">
@@ -313,7 +313,7 @@ export default function LandingPage() {
           <div className="relative z-10">
             <h2 className="text-4xl sm:text-5xl font-bold mb-4">Ready to create at scale?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join 2,500+ creators already using TokTik to go viral across all platforms. Start free, upgrade anytime.
+              Join 2,500+ creators already using AudienceAI to go viral across all platforms. Start free, upgrade anytime.
             </p>
           </div>
 
@@ -337,7 +337,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-8 mb-8">
             <div>
-              <h4 className="font-semibold mb-4">TokTik</h4>
+              <h4 className="font-semibold mb-4">AudienceAI</h4>
               <p className="text-sm text-muted-foreground max-w-xs">
                 AI-powered social media management for creators. Generate content once, post everywhere.
               </p>
@@ -361,7 +361,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2026 TokTik. All rights reserved.</p>
+            <p>&copy; 2026 AudienceAI. All rights reserved.</p>
           </div>
         </div>
       </footer>

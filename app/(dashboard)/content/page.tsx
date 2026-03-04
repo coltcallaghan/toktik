@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { createClient, type Content, type Account } from '@/lib/supabase';
 import Image from 'next/image';
+import HeyGenAvatarModal from '@/components/heygen-avatar-modal';
 
 type ContentWithAccount = Content & { account?: Account };
 
@@ -37,6 +38,9 @@ export default function ContentPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewCaptioned, setPreviewCaptioned] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<string | null>(null);
+  const [heygenGenerating, setHeygenGenerating] = useState<string | null>(null);
+  const [heygenStatus, setHeygenStatus] = useState<Record<string, string>>({});
+  const [heygenModalTarget, setHeygenModalTarget] = useState<string | null>(null);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -176,9 +180,104 @@ export default function ContentPage() {
     setTimeout(poll, 3000);
   }
 
-  async function handleHeyGen(id: string) {
-    // Stub — will integrate HeyGen API when key is provided
-    alert('HeyGen integration coming soon!\n\nTo enable: add HEYGEN_API_KEY to .env.local and the AI will generate a talking-head avatar reading your script.');
+  async function handleHeyGen(id: string, avatarId: string, voiceId: string) {
+    setHeygenModalTarget(null);
+    setHeygenGenerating(id);
+    setHeygenStatus((prev) => ({ ...prev, [id]: 'Generating video...' }));
+
+    try {
+      const res = await fetch(`/api/content/${id}/generate-video`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: 'heygen', avatar_id: avatarId, voice_id: voiceId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.video_id) {
+        setHeygenStatus((prev) => ({ ...prev, [id]: data.error ?? 'Generation failed' }));
+        setHeygenGenerating(null);
+        return;
+      }
+
+      const videoId = data.video_id;
+      setHeygenStatus((prev) => ({ ...prev, [id]: 'Processing avatar...' }));
+
+      // Poll until complete or failed
+      const poll = async () => {
+        const pollRes = await fetch(`/api/content/${id}/video-url`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: 'heygen', video_id: videoId }),
+        });
+        const pollData = await pollRes.json();
+
+        if (pollData.status === 'completed') {
+          setHeygenStatus((prev) => ({ ...prev, [id]: 'Done!' }));
+          setHeygenGenerating(null);
+          fetchAll(); // refresh content list to show new video
+        } else if (pollData.status === 'failed') {
+          setHeygenStatus((prev) => ({ ...prev, [id]: pollData.error ?? 'Generation failed' }));
+          setHeygenGenerating(null);
+        } else {
+          setHeygenStatus((prev) => ({ ...prev, [id]: `Processing... (${pollData.status})` }));
+          setTimeout(poll, 5000);
+        }
+      };
+
+      setTimeout(poll, 5000);
+    } catch {
+      setHeygenStatus((prev) => ({ ...prev, [id]: 'Request failed' }));
+      setHeygenGenerating(null);
+    }
+  }
+
+  async function handleRunway(id: string) {
+    setHeygenGenerating(id);
+    setHeygenStatus((prev) => ({ ...prev, [id]: 'Writing prompt...' }));
+
+    try {
+      const res = await fetch(`/api/content/${id}/generate-video`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: 'runway' }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.task_id) {
+        setHeygenStatus((prev) => ({ ...prev, [id]: data.error ?? 'Generation failed' }));
+        setHeygenGenerating(null);
+        return;
+      }
+
+      const taskId = data.task_id;
+      setHeygenStatus((prev) => ({ ...prev, [id]: 'Generating scenes...' }));
+
+      const poll = async () => {
+        const pollRes = await fetch(`/api/content/${id}/video-url`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: 'runway', task_id: taskId }),
+        });
+        const pollData = await pollRes.json();
+
+        if (pollData.status === 'SUCCEEDED') {
+          setHeygenStatus((prev) => ({ ...prev, [id]: 'Done!' }));
+          setHeygenGenerating(null);
+          fetchAll();
+        } else if (pollData.status === 'FAILED' || pollData.status === 'CANCELLED') {
+          setHeygenStatus((prev) => ({ ...prev, [id]: pollData.error ?? 'Generation failed' }));
+          setHeygenGenerating(null);
+        } else {
+          setHeygenStatus((prev) => ({ ...prev, [id]: `Generating... (${pollData.status})` }));
+          setTimeout(poll, 8000);
+        }
+      };
+
+      setTimeout(poll, 8000);
+    } catch {
+      setHeygenStatus((prev) => ({ ...prev, [id]: 'Request failed' }));
+      setHeygenGenerating(null);
+    }
   }
 
   async function handlePreview(id: string) {
@@ -264,15 +363,33 @@ export default function ContentPage() {
                             <span className="ml-1.5 text-xs">{hasVideo ? 'Replace' : 'Upload video'}</span>
                           </Button>
 
-                          {/* HeyGen AI Avatar */}
+                          {/* Runway AI Video */}
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleHeyGen(item.id)}
-                            title="Generate AI avatar video"
+                            onClick={() => heygenGenerating === item.id ? null : handleRunway(item.id)}
+                            disabled={heygenGenerating === item.id}
+                            title="Generate AI video from script (Runway Gen-4)"
+                          >
+                            {heygenGenerating === item.id
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              : <Sparkles className="h-3.5 w-3.5" />
+                            }
+                            <span className="ml-1.5 text-xs">
+                              {heygenGenerating === item.id ? (heygenStatus[item.id] ?? 'Generating...') : 'AI Video'}
+                            </span>
+                          </Button>
+
+                          {/* HeyGen Avatar */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => heygenGenerating === item.id ? null : setHeygenModalTarget(item.id)}
+                            disabled={heygenGenerating === item.id}
+                            title="Generate talking-head avatar video (HeyGen)"
                           >
                             <Bot className="h-3.5 w-3.5" />
-                            <span className="ml-1.5 text-xs">AI Video</span>
+                            <span className="ml-1.5 text-xs">Avatar</span>
                           </Button>
 
                           {/* Schedule */}
@@ -432,6 +549,16 @@ export default function ContentPage() {
 
   return (
     <div className="space-y-8">
+      {/* HeyGen avatar picker modal */}
+      {heygenModalTarget && (
+        <HeyGenAvatarModal
+          onClose={() => setHeygenModalTarget(null)}
+          onGenerate={(avatarId, voiceId) => handleHeyGen(heygenModalTarget, avatarId, voiceId)}
+          generating={heygenGenerating === heygenModalTarget}
+          statusText={heygenStatus[heygenModalTarget] ?? 'Generating...'}
+        />
+      )}
+
       {/* Video preview modal */}
       {previewUrl && (
         <div
@@ -439,10 +566,11 @@ export default function ContentPage() {
           onClick={() => setPreviewUrl(null)}
         >
           <div
-            className="relative flex flex-col items-center gap-3 max-h-screen p-4"
+            className="relative flex flex-col items-center gap-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between w-full">
+            {/* Label + close */}
+            <div className="flex items-center justify-between w-full px-1">
               <span className="text-white text-sm font-medium">
                 {previewCaptioned ? 'Captioned preview' : 'Video preview'}
                 {previewCaptioned && (
@@ -456,14 +584,39 @@ export default function ContentPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {/* Portrait TikTok aspect ratio */}
-            <video
-              src={previewUrl}
-              controls
-              autoPlay
-              className="rounded-lg max-h-[80vh]"
-              style={{ aspectRatio: '9/16', maxWidth: '360px', width: '100%' }}
-            />
+
+            {/* Phone shell */}
+            <div
+              className="relative bg-black rounded-[3rem] shadow-2xl"
+              style={{
+                width: '300px',
+                aspectRatio: '9/19.5',
+                border: '8px solid #1a1a1a',
+                boxShadow: '0 0 0 2px #333, 0 30px 80px rgba(0,0,0,0.8)',
+              }}
+            >
+              {/* Notch */}
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-5 bg-black rounded-full z-10" />
+
+              {/* Side buttons */}
+              <div className="absolute -left-3 top-20 w-1.5 h-8 bg-[#333] rounded-l-sm" />
+              <div className="absolute -left-3 top-32 w-1.5 h-10 bg-[#333] rounded-l-sm" />
+              <div className="absolute -left-3 top-44 w-1.5 h-10 bg-[#333] rounded-l-sm" />
+              <div className="absolute -right-3 top-28 w-1.5 h-14 bg-[#333] rounded-r-sm" />
+
+              {/* Screen */}
+              <div className="w-full h-full rounded-[2.5rem] overflow-hidden bg-black">
+                <video
+                  src={previewUrl}
+                  controls
+                  autoPlay
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Home indicator */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-white/30 rounded-full" />
+            </div>
           </div>
         </div>
       )}

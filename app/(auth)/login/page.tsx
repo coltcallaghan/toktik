@@ -69,8 +69,8 @@ export default function LoginPage() {
               <Flame className="h-7 w-7 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Welcome to TokTik</CardTitle>
-          <CardDescription>Sign in to manage your AI TikTok accounts</CardDescription>
+          <CardTitle className="text-2xl">Welcome to AudienceAI</CardTitle>
+          <CardDescription>Sign in to manage your AI social media accounts</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">

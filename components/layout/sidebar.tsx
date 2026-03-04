@@ -62,7 +62,7 @@ export function Sidebar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
             <Flame className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-xl font-bold">TokTik</span>
+          <span className="text-xl font-bold">AudienceAI</span>
         </div>
       </Link>
 

@@ -265,7 +265,7 @@ function AccountsPageInner() {
         <Card>
           <CardHeader>
             <CardTitle>Connect a Platform</CardTitle>
-            <CardDescription>Link your account via OAuth so TokTik can publish, sync stats, and manage content</CardDescription>
+            <CardDescription>Link your account via OAuth so AudienceAI can publish, sync stats, and manage content</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
@@ -289,7 +289,7 @@ function AccountsPageInner() {
               })}
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              You&apos;ll be redirected to each platform to authorize TokTik. Tokens are stored securely and used for publishing &amp; syncing.
+              You&apos;ll be redirected to each platform to authorize AudienceAI. Tokens are stored securely and used for publishing &amp; syncing.
             </p>
           </CardContent>
         </Card>

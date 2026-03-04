@@ -26,7 +26,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Read saved preference on mount
   useEffect(() => {
-    const saved = localStorage.getItem('toktik-theme') as Theme | null;
+    const saved = localStorage.getItem('audienceai-theme') as Theme | null;
     if (saved && ['light', 'dark', 'system'].includes(saved)) {
       setThemeState(saved);
     }
@@ -58,7 +58,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   function setTheme(t: Theme) {
     setThemeState(t);
-    localStorage.setItem('toktik-theme', t);
+    localStorage.setItem('audienceai-theme', t);
   }
 
   return (

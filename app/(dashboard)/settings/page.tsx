@@ -14,6 +14,10 @@ import {
   Sparkles,
   CreditCard,
   Music2,
+  Eye,
+  EyeOff,
+  Trash2,
+  KeyRound,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -136,6 +140,15 @@ export default function SettingsPage() {
   const [expandedService, setExpandedService] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
 
+  /* ── Third-party API Keys ───────────────────────────────────────── */
+  const [providerKeys, setProviderKeys] = useState<Record<string, string>>({
+    runway: '', heygen: '', elevenlabs: '', anthropic: '',
+  });
+  const [showProviderKey, setShowProviderKey] = useState<Record<string, boolean>>({});
+  const [configuredProviders, setConfiguredProviders] = useState<Record<string, string>>({});
+  const [savingProvider, setSavingProvider] = useState<string | null>(null);
+  const [providerMsg, setProviderMsg] = useState<Record<string, string>>({});
+
   /* ── Preferences ────────────────────────────────────────────────── */
   const [prefs, setPrefs] = useState({
     emailContent: true,
@@ -153,6 +166,7 @@ export default function SettingsPage() {
   useEffect(() => {
     loadUserData();
     loadServices();
+    loadConfiguredProviders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -383,6 +397,46 @@ export default function SettingsPage() {
   }
 
   /* ================================================================ */
+  /*  Provider API Keys                                                */
+  /* ================================================================ */
+
+  async function loadConfiguredProviders() {
+    const res = await fetch('/api/user-api-keys');
+    const data = await res.json();
+    if (res.ok) setConfiguredProviders(data.configured ?? {});
+  }
+
+  async function handleSaveProviderKey(provider: string) {
+    const key = providerKeys[provider]?.trim();
+    if (!key) return;
+    setSavingProvider(provider);
+    setProviderMsg((prev) => ({ ...prev, [provider]: '' }));
+    const res = await fetch('/api/user-api-keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, key }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setProviderMsg((prev) => ({ ...prev, [provider]: 'Saved!' }));
+      setProviderKeys((prev) => ({ ...prev, [provider]: '' }));
+      loadConfiguredProviders();
+    } else {
+      setProviderMsg((prev) => ({ ...prev, [provider]: data.error ?? 'Failed to save' }));
+    }
+    setSavingProvider(null);
+  }
+
+  async function handleDeleteProviderKey(provider: string) {
+    await fetch('/api/user-api-keys', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider }),
+    });
+    setConfiguredProviders((prev) => { const n = { ...prev }; delete n[provider]; return n; });
+  }
+
+  /* ================================================================ */
   /*  Preferences                                                      */
   /* ================================================================ */
 
@@ -537,7 +591,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>API Key</CardTitle>
               <CardDescription>
-                Use this key to authenticate external tools with TokTik
+                Use this key to authenticate external tools with AudienceAI
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -586,6 +640,93 @@ export default function SettingsPage() {
                   {regenerating ? 'Regenerating…' : 'Regenerate Key'}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Provider Keys */}
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Provider Keys</CardTitle>
+              <CardDescription>
+                Add your own API keys to enable video generation and voice features. Keys are encrypted and never shared.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {([
+                { provider: 'runway', label: 'Runway', desc: 'Text-to-video generation (Gen-4.5)', href: 'https://dev.runwayml.com' },
+                { provider: 'heygen', label: 'HeyGen', desc: 'AI avatar talking-head videos', href: 'https://heygen.com' },
+                { provider: 'elevenlabs', label: 'ElevenLabs', desc: 'Voice/text-to-speech generation', href: 'https://elevenlabs.io' },
+                { provider: 'anthropic', label: 'Anthropic (Claude)', desc: 'AI script & content generation', href: 'https://console.anthropic.com' },
+              ] as const).map(({ provider, label, desc, href }) => {
+                const isConfigured = !!configuredProviders[provider];
+                const isSaving = savingProvider === provider;
+                const msg = providerMsg[provider];
+                const visible = showProviderKey[provider];
+
+                return (
+                  <div key={provider} className="rounded-lg border border-border p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <KeyRound className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">{label}</p>
+                          <p className="text-xs text-muted-foreground">{desc}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isConfigured && (
+                          <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-500">
+                            <Check className="h-3 w-3" /> Saved
+                          </span>
+                        )}
+                        <a href={href} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline">
+                          Get key
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type={visible ? 'text' : 'password'}
+                          value={providerKeys[provider]}
+                          onChange={(e) => setProviderKeys((prev) => ({ ...prev, [provider]: e.target.value }))}
+                          placeholder={isConfigured ? '••••••••••••••••••••••• (replace)' : 'Paste API key here'}
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono pr-10 focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowProviderKey((prev) => ({ ...prev, [provider]: !prev[provider] }))}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => handleSaveProviderKey(provider)}
+                        disabled={isSaving || !providerKeys[provider]?.trim()}
+                      >
+                        {isSaving ? 'Saving…' : 'Save'}
+                      </Button>
+                      {isConfigured && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteProviderKey(provider)}
+                          title="Remove saved key"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+
+                    {msg && (
+                      <p className={`text-xs ${msg === 'Saved!' ? 'text-green-500' : 'text-destructive'}`}>{msg}</p>
+                    )}
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
 

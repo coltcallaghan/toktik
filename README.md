@@ -1,4 +1,4 @@
-# TokTik - AI-Powered Social Media Management Platform
+# AudienceAI - AI-Powered Social Media Management Platform
 
 A Next.js 15 application that helps creators manage, generate, and publish content across multiple social media platforms (TikTok, YouTube, Instagram, Facebook, Twitter, LinkedIn) using AI.
 
@@ -15,7 +15,7 @@ A Next.js 15 application that helps creators manage, generate, and publish conte
 ```bash
 # Clone repository
 git clone <repo>
-cd toktik
+cd audienceai
 
 # Install dependencies
 npm install
