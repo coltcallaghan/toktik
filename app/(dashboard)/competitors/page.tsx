@@ -7,6 +7,7 @@ import {
   Loader2,
   MessageCircle,
   Plus,
+  RefreshCw,
   Search,
   Trash2,
   Users,
@@ -33,9 +34,9 @@ type Competitor = {
   display_name: string;
   niche: string | null;
   follower_count: number;
-  avg_views: number;
-  avg_likes: number;
-  avg_comments: number;
+  avg_views: number | null;
+  avg_likes: number | null;
+  avg_comments: number | null;
   posting_frequency: string | null;
   top_content_themes: string[];
   notes: string | null;
@@ -78,6 +79,7 @@ export default function CompetitorsPage() {
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [refreshing, setRefreshing] = useState<string | null>(null);
   const [addError, setAddError] = useState('');
   const [showForm, setShowForm] = useState(false);
 
@@ -137,6 +139,24 @@ export default function CompetitorsPage() {
     setCompetitors((prev) => prev.filter((c) => c.id !== id));
   }
 
+  async function refreshCompetitor(id: string) {
+    setRefreshing(id);
+    const res = await fetch(`/api/competitors?id=${id}`, { method: 'PATCH' });
+    if (res.ok) {
+      const updated = await res.json();
+      setCompetitors((prev) => prev.map((c) => c.id === id ? updated : c));
+    }
+    setRefreshing(null);
+  }
+
+  async function refreshAll() {
+    for (const c of competitors) {
+      await refreshCompetitor(c.id);
+    }
+  }
+
+  const isRefreshingAll = refreshing !== null;
+
   const canSubmit = inputMode === 'url' ? urlInput.trim().length > 0 : manualUsername.trim().length > 0;
 
   if (loading) {
@@ -156,10 +176,18 @@ export default function CompetitorsPage() {
             Track competitor accounts and analyze their content strategy
           </p>
         </div>
-        <Button onClick={() => { setShowForm(!showForm); setAddError(''); }}>
-          {showForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-          {showForm ? 'Cancel' : 'Add Competitor'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {competitors.length > 0 && !showForm && (
+            <Button variant="outline" onClick={refreshAll} disabled={isRefreshingAll}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshingAll ? 'animate-spin' : ''}`} />
+              {isRefreshingAll ? 'Refreshing…' : 'Refresh All'}
+            </Button>
+          )}
+          <Button onClick={() => { setShowForm(!showForm); setAddError(''); }}>
+            {showForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+            {showForm ? 'Cancel' : 'Add Competitor'}
+          </Button>
+        </div>
       </div>
 
       {/* Add form */}
@@ -275,10 +303,9 @@ export default function CompetitorsPage() {
 
       {/* Stats */}
       {competitors.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-3">
           <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Tracked</p><p className="text-2xl font-bold">{competitors.length}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Avg Followers</p><p className="text-2xl font-bold">{fmtNum(Math.round(competitors.reduce((s, c) => s + c.follower_count, 0) / competitors.length))}</p></CardContent></Card>
-          <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Avg Views</p><p className="text-2xl font-bold">{fmtNum(Math.round(competitors.reduce((s, c) => s + c.avg_views, 0) / competitors.length))}</p></CardContent></Card>
           <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Niches Covered</p><p className="text-2xl font-bold">{new Set(competitors.map((c) => c.niche).filter(Boolean)).size}</p></CardContent></Card>
         </div>
       )}
@@ -315,10 +342,18 @@ export default function CompetitorsPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       {c.last_analyzed_at && (
-                        <span className="text-[10px] text-muted-foreground">{new Date(c.last_analyzed_at).toLocaleDateString()}</span>
+                        <span className="text-[10px] text-muted-foreground mr-1">{new Date(c.last_analyzed_at).toLocaleDateString()}</span>
                       )}
+                      <button
+                        onClick={() => refreshCompetitor(c.id)}
+                        disabled={refreshing === c.id}
+                        className="rounded-md p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+                        title="Refresh data"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${refreshing === c.id ? 'animate-spin' : ''}`} />
+                      </button>
                       <button
                         onClick={() => removeCompetitor(c.id)}
                         className="rounded-md p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
@@ -331,14 +366,14 @@ export default function CompetitorsPage() {
                 <CardContent className="space-y-3">
                   <div className="grid grid-cols-4 gap-2 text-center">
                     {[
-                      { label: 'Followers', val: fmtNum(c.follower_count), icon: Users },
-                      { label: 'Avg Views', val: fmtNum(c.avg_views), icon: Eye },
-                      { label: 'Avg Likes', val: fmtNum(c.avg_likes), icon: Heart },
-                      { label: 'Comments', val: fmtNum(c.avg_comments), icon: MessageCircle },
-                    ].map(({ label, val, icon: MIcon }) => (
+                      { label: 'Followers', val: fmtNum(c.follower_count), icon: Users, confirmed: true },
+                      { label: 'Avg Views', val: c.avg_views != null ? fmtNum(c.avg_views) : '—', icon: Eye, confirmed: c.avg_views != null },
+                      { label: 'Avg Likes', val: c.avg_likes != null ? fmtNum(c.avg_likes) : '—', icon: Heart, confirmed: c.avg_likes != null },
+                      { label: 'Comments', val: c.avg_comments != null ? fmtNum(c.avg_comments) : '—', icon: MessageCircle, confirmed: c.avg_comments != null },
+                    ].map(({ label, val, icon: MIcon, confirmed }) => (
                       <div key={label} className="rounded-md bg-muted p-2">
                         <MIcon className="mx-auto h-3.5 w-3.5 text-muted-foreground mb-0.5" />
-                        <p className="text-sm font-bold">{val}</p>
+                        <p className={`text-sm font-bold ${!confirmed ? 'text-muted-foreground' : ''}`}>{val}</p>
                         <p className="text-[10px] text-muted-foreground">{label}</p>
                       </div>
                     ))}

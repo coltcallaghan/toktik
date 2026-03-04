@@ -50,10 +50,10 @@ type EnrichedContent = Content & {
 function extractMetrics(content: Content): Metrics {
   const em = content.engagement_metrics as Record<string, number> | null;
   return {
-    views: em?.views ?? Math.floor(Math.random() * 50000),
-    likes: em?.likes ?? Math.floor(Math.random() * 5000),
-    comments: em?.comments ?? Math.floor(Math.random() * 500),
-    shares: em?.shares ?? Math.floor(Math.random() * 200),
+    views: em?.views ?? 0,
+    likes: em?.likes ?? 0,
+    comments: em?.comments ?? 0,
+    shares: em?.shares ?? 0,
   };
 }
 

@@ -85,24 +85,54 @@ async function scrapeProfilePage(platform: Platform, username: string): Promise<
     .trim()
     .slice(0, 3000);
 
-  // Try to pull follower count from common meta/json patterns
   let follower_count: number | null = null;
   let display_name: string | null = null;
   let bio: string | null = null;
 
-  // TikTok: JSON-LD or meta tags
-  const followerMatch = html.match(/"followerCount"\s*:\s*(\d+)/i)
-    || html.match(/followers["\s:>]*([0-9,.KMB]+)/i);
-  if (followerMatch) {
-    const raw = followerMatch[1].replace(/,/g, '');
-    if (/^\d+$/.test(raw)) follower_count = parseInt(raw, 10);
+  // Helper: parse "611K", "1.2M", "850,000" → integer
+  function parseCount(s: string): number | null {
+    const clean = s.replace(/,/g, '').trim();
+    if (/^\d+$/.test(clean)) return parseInt(clean, 10);
+    const m = clean.match(/^([\d.]+)\s*([KMBkmb])$/);
+    if (m) {
+      const n = parseFloat(m[1]);
+      const mul = m[2].toUpperCase();
+      if (mul === 'K') return Math.round(n * 1_000);
+      if (mul === 'M') return Math.round(n * 1_000_000);
+      if (mul === 'B') return Math.round(n * 1_000_000_000);
+    }
+    return null;
   }
 
+  // TikTok: embedded JSON
+  const tikTokMatch = html.match(/"followerCount"\s*:\s*(\d+)/i);
+  // YouTube: og:description contains "611K subscribers" or JSON "subscriberCountText"
+  const ytSubscriberText = html.match(/"subscriberCountText"\s*:\s*\{\s*"simpleText"\s*:\s*"([^"]+)"/i)
+    || html.match(/"subscriberCountText"\s*:\s*"([^"]+)"/i)
+    || html.match(/content="([\d.,KMB]+)\s+subscribers/i);
+  // Instagram: JSON "edge_followed_by":{"count":N}
+  const igMatch = html.match(/"edge_followed_by"\s*:\s*\{\s*"count"\s*:\s*(\d+)/i);
+  // Generic fallback
+  const genericMatch = html.match(/"followerCount"\s*:\s*(\d+)/i)
+    || html.match(/"followersCount"\s*:\s*(\d+)/i);
+
+  if (tikTokMatch) {
+    follower_count = parseInt(tikTokMatch[1], 10);
+  } else if (ytSubscriberText) {
+    follower_count = parseCount(ytSubscriberText[1].replace(/\s*subscribers?/i, '').trim());
+  } else if (igMatch) {
+    follower_count = parseInt(igMatch[1], 10);
+  } else if (genericMatch) {
+    follower_count = parseInt(genericMatch[1], 10);
+  }
+
+  // Display name: og:title is most reliable across platforms
   const nameMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i)
     || html.match(/"authorName"\s*:\s*"([^"]+)"/i)
-    || html.match(/<title>([^<|–-]+)/i);
-  if (nameMatch) display_name = nameMatch[1].trim();
+    || html.match(/<title>([^<|–\-]+)/i);
+  if (nameMatch) display_name = nameMatch[1].replace(/\s*[-–|].*$/, '').trim();
 
+  // Bio: og:description
   const descMatch = html.match(/<meta\s+(?:name|property)="(?:og:description|description)"\s+content="([^"]+)"/i);
   if (descMatch) bio = descMatch[1].trim();
 
@@ -182,34 +212,23 @@ export async function POST(req: NextRequest) {
     // Scrape the public profile page for live data
     const scraped = await scrapeProfilePage(platform, username);
 
-    // AI analysis — combine scraped context with Claude intelligence
+    // Use Claude only for content themes — things it can genuinely infer from bio/page text
     const client = getAnthropicClient();
     const msg = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 900,
-      system: `You are a social media competitive intelligence analyst. Analyze a competitor's public profile and provide structured data.
-
-Rules:
-- Use any scraped data provided; estimate realistically where data is missing
-- follower_count, avg_views, avg_likes, avg_comments must be integers
-- posting_frequency: e.g. "2x daily", "5x weekly", "daily"
-- top_content_themes: 3-5 short phrases describing their content
-- Output ONLY valid JSON, no markdown or code fences`,
+      max_tokens: 300,
+      system: `You are a social media analyst. Based only on the profile info provided, identify the content themes this account posts about. If there is genuinely not enough information to determine themes, return an empty array. Never guess or make up themes. Output ONLY valid JSON, no markdown or code fences.`,
       messages: [
         {
           role: 'user',
           content: `Platform: ${platform}
 Username: @${username}
 Niche: ${body.niche || 'Unknown'}
-${body.notes ? `Notes: ${body.notes}` : ''}
+Display name: ${scraped.display_name ?? username}
+Bio: ${scraped.bio ?? 'not available'}
+Page excerpt: ${scraped.raw_html_excerpt.slice(0, 800) || 'not available'}
 
-Scraped profile data:
-- Display name: ${scraped.display_name ?? 'not found'}
-- Follower count: ${scraped.follower_count ?? 'not found'}
-- Bio: ${scraped.bio ?? 'not found'}
-- Page excerpt: ${scraped.raw_html_excerpt.slice(0, 1000) || 'not available'}
-
-Return JSON: {"display_name": "...", "follower_count": N, "avg_views": N, "avg_likes": N, "avg_comments": N, "posting_frequency": "...", "top_content_themes": ["...", "..."]}`,
+Return JSON: {"top_content_themes": ["...", "...", "..."]} or {"top_content_themes": []} if insufficient data.`,
         },
       ],
     });
@@ -221,9 +240,9 @@ Return JSON: {"display_name": "...", "follower_count": N, "avg_views": N, "avg_l
       analysis = JSON.parse(cleaned);
     } catch {}
 
-    // Prefer live scraped data over AI estimates
-    const follower_count = scraped.follower_count ?? (analysis.follower_count as number) ?? 0;
-    const display_name = scraped.display_name ?? (analysis.display_name as string) ?? username;
+    // Only use confirmed scraped data — never fabricate engagement metrics
+    const follower_count = scraped.follower_count ?? 0;
+    const display_name = scraped.display_name ?? username;
 
     const { data: saved, error: saveError } = await supabase
       .from('competitors')
@@ -234,10 +253,10 @@ Return JSON: {"display_name": "...", "follower_count": N, "avg_views": N, "avg_l
         display_name,
         niche: body.niche || null,
         follower_count,
-        avg_views: (analysis.avg_views as number) ?? 0,
-        avg_likes: (analysis.avg_likes as number) ?? 0,
-        avg_comments: (analysis.avg_comments as number) ?? 0,
-        posting_frequency: (analysis.posting_frequency as string) ?? null,
+        avg_views: null,
+        avg_likes: null,
+        avg_comments: null,
+        posting_frequency: null,
         top_content_themes: (analysis.top_content_themes as string[]) ?? [],
         notes: body.notes || null,
         last_analyzed_at: new Date().toISOString(),
@@ -279,4 +298,80 @@ export async function DELETE(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
+}
+
+/* ── PATCH /api/competitors — refresh a competitor's data ──────── */
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const id = req.nextUrl.searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
+
+    // Fetch existing record to get platform + username
+    const { data: existing, error: fetchError } = await supabase
+      .from('competitors')
+      .select('platform, username, niche')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (fetchError || !existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    const platform = existing.platform as Platform;
+    const username = existing.username as string;
+
+    // Re-scrape
+    const scraped = await scrapeProfilePage(platform, username);
+
+    // Re-run Claude for themes
+    const client = getAnthropicClient();
+    const msg = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      system: `You are a social media analyst. Based only on the profile info provided, identify the content themes this account posts about. If there is genuinely not enough information to determine themes, return an empty array. Never guess or make up themes. Output ONLY valid JSON, no markdown or code fences.`,
+      messages: [{
+        role: 'user',
+        content: `Platform: ${platform}\nUsername: @${username}\nNiche: ${existing.niche || 'Unknown'}\nDisplay name: ${scraped.display_name ?? username}\nBio: ${scraped.bio ?? 'not available'}\nPage excerpt: ${scraped.raw_html_excerpt.slice(0, 800) || 'not available'}\n\nReturn JSON: {"top_content_themes": ["...", "...", "..."]} or {"top_content_themes": []} if insufficient data.`,
+      }],
+    });
+
+    const raw = msg.content[0].type === 'text' ? msg.content[0].text.trim() : '{}';
+    let analysis: Record<string, unknown> = {};
+    try {
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      analysis = JSON.parse(cleaned);
+    } catch {}
+
+    const { data: updated, error: updateError } = await supabase
+      .from('competitors')
+      .update({
+        display_name: scraped.display_name ?? username,
+        follower_count: scraped.follower_count ?? 0,
+        avg_views: null,
+        avg_likes: null,
+        avg_comments: null,
+        posting_frequency: null,
+        top_content_themes: (analysis.top_content_themes as string[]) ?? [],
+        last_analyzed_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+    return NextResponse.json(updated);
+  } catch (err) {
+    console.error('competitors PATCH error:', err);
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
+  }
 }
