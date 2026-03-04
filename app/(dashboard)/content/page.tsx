@@ -23,6 +23,10 @@ export default function ContentPage() {
   const [title, setTitle] = useState('');
   const [script, setScript] = useState('');
   const [accountId, setAccountId] = useState('');
+  const [videoLength, setVideoLength] = useState('60s');
+  const [contentStyle, setContentStyle] = useState('');
+  const [callToAction, setCallToAction] = useState('');
+  const [keyPoints, setKeyPoints] = useState('');
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   // Per-item states
@@ -78,10 +82,22 @@ export default function ContentPage() {
     if (!title) return;
     setGenerating(true);
     const account = accounts.find((a) => a.id === accountId);
+    const pts = keyPoints.split('\n').map((p) => p.trim()).filter(Boolean);
     const res = await fetch('/api/generate-script', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic: title, niche: account?.niche }),
+      body: JSON.stringify({
+        topic: title,
+        niche: account?.niche,
+        tone: (account as Record<string, unknown>)?.tone,
+        content_style: contentStyle || (account as Record<string, unknown>)?.content_style,
+        target_audience: (account as Record<string, unknown>)?.target_audience,
+        brand_voice: (account as Record<string, unknown>)?.brand_voice,
+        posting_goals: (account as Record<string, unknown>)?.posting_goals,
+        video_length: videoLength,
+        call_to_action: callToAction || undefined,
+        key_points: pts.length ? pts : undefined,
+      }),
     });
     const data = await res.json();
     if (data.script) setScript(data.script);
@@ -98,7 +114,7 @@ export default function ContentPage() {
       status: 'draft', video_url: null, scheduled_at: null,
       published_at: null, engagement_metrics: null,
     });
-    if (!error) { setTitle(''); setScript(''); setAccountId(''); setShowForm(false); fetchAll(); }
+    if (!error) { setTitle(''); setScript(''); setAccountId(''); setVideoLength('60s'); setContentStyle(''); setCallToAction(''); setKeyPoints(''); setShowForm(false); fetchAll(); }
     setSaving(false);
   }
 
@@ -144,7 +160,7 @@ export default function ContentPage() {
     const data = await res.json();
 
     if (res.ok) {
-      setPublishResult((prev) => ({ ...prev, [id]: { ok: true, msg: 'Posted to TikTok!' } }));
+      setPublishResult((prev) => ({ ...prev, [id]: { ok: true, msg: 'Published!' } }));
       setContent((prev) => prev.map((c) =>
         c.id === id ? { ...c, status: 'published', published_at: new Date().toISOString() } : c
       ));
@@ -326,7 +342,8 @@ export default function ContentPage() {
           const isCaptioning = captioning === item.id;
           const metrics = item.engagement_metrics as Record<string, unknown> | null;
           const hasCaptions = metrics?.caption_status === 'done';
-          const canPublish = item.status === 'draft' && hasVideo && acc?.tiktok_access_token;
+          const isConnected = !!(acc?.tiktok_access_token || acc?.platform_access_token);
+          const canPublish = item.status === 'draft' && hasVideo && isConnected;
 
           return (
             <div key={item.id} className="rounded-lg border border-border p-4 hover:bg-muted/50 transition-colors">
@@ -471,7 +488,7 @@ export default function ContentPage() {
                             size="sm"
                             onClick={() => handlePublish(item.id)}
                             disabled={publishing === item.id || !canPublish}
-                            title={!hasVideo ? 'Upload a video first' : !acc?.tiktok_access_token ? 'Connect TikTok first' : 'Post to TikTok'}
+                            title={!hasVideo ? 'Upload a video first' : !isConnected ? 'Connect an account first' : 'Publish'}
                           >
                             {publishing === item.id
                               ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -506,8 +523,8 @@ export default function ContentPage() {
                       <span className="text-xs text-amber-600">No video — upload or generate one to publish</span>
                     ) : null}
 
-                    {!acc?.tiktok_access_token && item.status === 'draft' && (
-                      <span className="text-xs text-muted-foreground">· TikTok not connected</span>
+                    {!isConnected && item.status === 'draft' && (
+                      <span className="text-xs text-muted-foreground">· Account not connected via OAuth</span>
                     )}
                   </div>
 
@@ -646,7 +663,7 @@ export default function ContentPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Content</h1>
-          <p className="text-muted-foreground">Manage your TikTok content</p>
+          <p className="text-muted-foreground">Manage your social media content</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -659,24 +676,28 @@ export default function ContentPage() {
         <CardContent className="flex items-start gap-3 pt-4 pb-4">
           <ExternalLink className="h-4 w-4 text-primary shrink-0 mt-0.5" />
           <p className="text-sm text-primary/80">
-            To publish to TikTok: upload a video to a draft, then click <strong>Publish</strong>.
-            AI captions & hashtags are sent automatically. Videos post as <strong>private</strong> by default — change visibility in the TikTok app.
+            Upload or generate a video for a draft, then click <strong>Publish</strong> to post it to the connected account.
+            AI captions &amp; hashtags are sent automatically. Videos post as <strong>private</strong> by default — change visibility in the platform app.
           </p>
         </CardContent>
       </Card>
 
       {showForm && (
         <Card>
-          <CardHeader><CardTitle>New Content</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>New Content</CardTitle>
+            <CardDescription>Fill in as much detail as possible for the best AI-generated script.</CardDescription>
+          </CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="space-y-4">
+              {/* Row 1: Title + Account */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Title</label>
-                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Video title" required />
+                  <label className="text-sm font-medium">Title / Topic <span className="text-destructive">*</span></label>
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. 5 ways to save money on groceries" required />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Account</label>
+                  <label className="text-sm font-medium">Account <span className="text-destructive">*</span></label>
                   <select
                     value={accountId}
                     onChange={(e) => setAccountId(e.target.value)}
@@ -690,9 +711,68 @@ export default function ContentPage() {
                   </select>
                 </div>
               </div>
+
+              {/* Row 2: Video length + Content style */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Video Length</label>
+                  <select
+                    value={videoLength}
+                    onChange={(e) => setVideoLength(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base"
+                  >
+                    <option value="15s">15 seconds — quick hit</option>
+                    <option value="30s">30 seconds — short & punchy</option>
+                    <option value="60s">60 seconds — standard</option>
+                    <option value="3min">3 minutes — deep dive</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Content Style</label>
+                  <select
+                    value={contentStyle}
+                    onChange={(e) => setContentStyle(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base"
+                  >
+                    <option value="">Use account default</option>
+                    <option value="educational">Educational — teach something</option>
+                    <option value="entertaining">Entertaining — make them laugh/smile</option>
+                    <option value="storytelling">Storytelling — personal narrative</option>
+                    <option value="listicle">Listicle — numbered tips/facts</option>
+                    <option value="controversial">Controversial — hot take / debate</option>
+                    <option value="tutorial">Tutorial — step-by-step how-to</option>
+                    <option value="motivational">Motivational — inspire action</option>
+                    <option value="product">Product showcase — demo or review</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 3: Call to action */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Call to Action</label>
+                <Input
+                  value={callToAction}
+                  onChange={(e) => setCallToAction(e.target.value)}
+                  placeholder="e.g. Follow for more, Visit the link in bio, Comment your thoughts below"
+                />
+              </div>
+
+              {/* Row 4: Key points */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Key Points to Cover</label>
+                <textarea
+                  value={keyPoints}
+                  onChange={(e) => setKeyPoints(e.target.value)}
+                  placeholder={"One point per line, e.g.:\nMention the 50% discount code\nInclude the stat about Gen Z spending\nEnd with a question to drive comments"}
+                  rows={3}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+
+              {/* Script */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Script</label>
+                  <label className="text-sm font-medium">Script <span className="text-destructive">*</span></label>
                   <Button
                     type="button"
                     variant="outline"
@@ -708,12 +788,13 @@ export default function ContentPage() {
                 <textarea
                   value={script}
                   onChange={(e) => setScript(e.target.value)}
-                  placeholder="Write or paste your script here..."
+                  placeholder="Write your script or click Generate with AI..."
                   rows={6}
                   className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-base resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   required
                 />
               </div>
+
               <div className="flex gap-3">
                 <Button type="submit" disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

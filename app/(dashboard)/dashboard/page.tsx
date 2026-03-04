@@ -71,7 +71,7 @@ export default function DashboardPage() {
               <>
                 <div className="text-2xl font-bold">{accounts.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {accounts.filter((a) => a.tiktok_access_token).length} connected
+                  {accounts.filter((a) => a.tiktok_access_token || a.platform_access_token).length} connected
                 </p>
               </>
             )}
@@ -220,25 +220,16 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Your Accounts</CardTitle>
-              <CardDescription>Connected TikTok accounts</CardDescription>
+              <CardDescription>Connected social accounts</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <a
-                href="https://www.tiktok.com/signup"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ExternalLink className="h-3 w-3" />
-                Create TikTok account
-              </a>
-              <a
-                href="/api/auth/tiktok"
+              <Link
+                href="/accounts"
                 className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                <TikTokIcon className="h-3.5 w-3.5" />
-                Connect TikTok
-              </a>
+                <Users className="h-3.5 w-3.5" />
+                Connect Account
+              </Link>
             </div>
           </div>
         </CardHeader>
@@ -250,14 +241,14 @@ export default function DashboardPage() {
             </div>
           ) : accounts.length === 0 ? (
             <div className="py-8 text-center space-y-3">
-              <p className="text-sm text-muted-foreground">No TikTok accounts connected yet.</p>
-              <a
-                href="/api/auth/tiktok"
+              <p className="text-sm text-muted-foreground">No accounts connected yet.</p>
+              <Link
+                href="/accounts"
                 className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                <TikTokIcon className="h-3.5 w-3.5" />
+                <Users className="h-3.5 w-3.5" />
                 Connect your first account
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="space-y-2">
@@ -286,7 +277,7 @@ export default function DashboardPage() {
                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                         : 'bg-muted text-muted-foreground'
                     }`}>
-                      {account.tiktok_access_token ? 'Connected' : 'Manual'}
+                      {(account.tiktok_access_token || account.platform_access_token) ? 'Connected' : 'Manual'}
                     </span>
                     <Link
                       href="/accounts"
@@ -305,10 +296,3 @@ export default function DashboardPage() {
   );
 }
 
-function TikTokIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z" />
-    </svg>
-  );
-}

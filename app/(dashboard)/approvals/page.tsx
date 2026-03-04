@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   X,
   XCircle,
+  Zap,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode; label
 };
 
 export default function ApprovalsPage() {
+  const [planAllowed, setPlanAllowed] = useState<boolean | null>(null);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -61,7 +63,12 @@ export default function ApprovalsPage() {
   const [formTeamId, setFormTeamId] = useState('');
   const [formAutoPublish, setFormAutoPublish] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    fetch('/api/user-plan').then(r => r.json()).then(d => {
+      setPlanAllowed(!!d.config?.features?.approvalWorkflows);
+    }).catch(() => setPlanAllowed(false));
+    loadData();
+  }, []);
 
   async function loadData() {
     setLoading(true);
@@ -118,6 +125,21 @@ export default function ApprovalsPage() {
 
   const pending = requests.filter((r) => r.status === 'pending');
   const resolved = requests.filter((r) => r.status !== 'pending');
+
+  if (planAllowed === false) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+        <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+          <ShieldCheck className="h-7 w-7 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold">Agency Feature</h2>
+        <p className="text-muted-foreground max-w-sm">Approval workflows are available on the Agency plan. Upgrade to manage content sign-off across your team and clients.</p>
+        <a href="/settings?tab=billing" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+          <Zap className="h-4 w-4" /> Upgrade to Agency
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -551,7 +551,7 @@ export default function SchedulerPage() {
                       ))}
                     </select>
                     <p className="text-[10px] text-muted-foreground">
-                      ⚡ = Peak TikTok engagement hours
+                      ⚡ = Peak social media engagement hours
                     </p>
                   </div>
 

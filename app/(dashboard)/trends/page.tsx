@@ -135,7 +135,7 @@ export default function TrendsPage() {
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              {analysing ? 'Claude is analysing current TikTok trends…' : 'Loading trends…'}
+              {analysing ? 'Claude is analysing current social media trends…' : 'Loading trends…'}
             </p>
           </div>
         )}
