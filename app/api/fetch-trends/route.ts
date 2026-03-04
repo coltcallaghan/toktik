@@ -17,20 +17,27 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const niches: string[] = body.niches ?? [];
+    const searchTopic: string = body.search_topic ?? '';
 
     // Claude: generate & score trend opportunities
     const client = getAnthropicClient();
+
+    const focusLine = searchTopic
+      ? `The user is specifically searching for trends around: "${searchTopic}". Focus all 6 trends on this topic and related angles.`
+      : niches.length
+        ? `Focus on these niches: ${niches.join(', ')}`
+        : 'Cover a broad range of popular niches.';
 
     const trendsMsg = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1500,
       messages: [{
         role: 'user',
-        content: `You are a TikTok trend analyst. Today is ${new Date().toDateString()}.
+        content: `You are a social media trend analyst. Today is ${new Date().toDateString()}.
 
-${niches.length ? `Focus on these niches: ${niches.join(', ')}` : 'Cover a broad range of popular niches.'}
+${focusLine}
 
-Identify 6 current TikTok trend opportunities that creators should act on NOW.
+Identify 6 current social media trend opportunities that creators should act on NOW.
 
 Respond with ONLY valid JSON — no markdown, no explanation, no code fences:
 {
@@ -83,7 +90,6 @@ Respond with ONLY valid JSON — no markdown, no explanation, no code fences:
       return NextResponse.json({ error: 'AI returned no trends. Please try again.' }, { status: 500 });
     }
 
-    // Save to Supabase — replace existing trends for this user
     const now = new Date();
     const rows = parsed.trends.map((t) => ({
       user_id: user.id,
@@ -95,6 +101,17 @@ Respond with ONLY valid JSON — no markdown, no explanation, no code fences:
       expires_at: new Date(now.getTime() + (Number(t.expires_days) || 7) * 86400000).toISOString(),
     }));
 
+    // Topic search: return results only, don't save to DB
+    if (searchTopic) {
+      return NextResponse.json({
+        trends: parsed.trends,
+        search_results: rows, // client renders these separately
+        top_pick: parsed.top_pick,
+        top_pick_reason: parsed.top_pick_reason,
+      });
+    }
+
+    // General analyse: replace saved trends
     await supabase.from('trends').delete().eq('user_id', user.id);
     const { error: insertError } = await supabase.from('trends').insert(rows);
     if (insertError) {
