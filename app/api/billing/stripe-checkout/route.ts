@@ -74,12 +74,13 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-      metadata: {
-        tier,
-        supabase_uid: user.id,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?upgraded=1`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings`,
+      // supabase_uid on subscription metadata so webhook can update the user's tier
+      subscription_data: {
+        metadata: { supabase_uid: user.id, tier },
       },
+      metadata: { tier, supabase_uid: user.id },
     });
 
     return NextResponse.json({ sessionId: session.id, url: session.url });

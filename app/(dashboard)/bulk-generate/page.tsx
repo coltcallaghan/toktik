@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import {
   CheckCircle2,
   ChevronDown,
+  Layers,
   Loader2,
   Sparkles,
   TrendingUp,
@@ -34,6 +35,8 @@ export default function BulkGeneratePage() {
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<BulkResult[] | null>(null);
+  const [hasAnthropicKey, setHasAnthropicKey] = useState(false);
+  const [planAllowed, setPlanAllowed] = useState<boolean | null>(null);
 
   // Form state
   const [selectedAccounts, setSelectedAccounts] = useState<Set<string>>(new Set());
@@ -44,6 +47,14 @@ export default function BulkGeneratePage() {
 
   useEffect(() => {
     loadData();
+    fetch('/api/user-api-keys')
+      .then((r) => r.json())
+      .then((d) => setHasAnthropicKey(!!d.configured?.anthropic))
+      .catch(() => {});
+    fetch('/api/user-plan')
+      .then((r) => r.json())
+      .then((d) => setPlanAllowed(d.config?.features?.bulkGenerate === true))
+      .catch(() => setPlanAllowed(false));
   }, []);
 
   async function loadData() {
@@ -118,7 +129,7 @@ export default function BulkGeneratePage() {
 
   /* ── Render ─────────────────────────────────────────────────────── */
 
-  if (loading) {
+  if (loading || planAllowed === null) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -126,10 +137,30 @@ export default function BulkGeneratePage() {
     );
   }
 
+  if (!planAllowed) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
+        <Layers className="h-12 w-12 text-muted-foreground/40" />
+        <h2 className="text-2xl font-bold">Bulk Generate is a Creator feature</h2>
+        <p className="text-muted-foreground max-w-sm">
+          Generate content for multiple accounts at once. Upgrade to Creator or Agency to unlock this.
+        </p>
+        <a
+          href="/settings?tab=billing"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <Zap className="h-4 w-4" />
+          Upgrade Plan
+        </a>
+      </div>
+    );
+  }
+
   const canGenerate =
     selectedAccounts.size > 0 &&
     (useTrendPicker ? !!selectedTrend : customTrend.trim().length > 0) &&
-    !generating;
+    !generating &&
+    hasAnthropicKey;
 
   return (
     <div className="space-y-6">
@@ -310,10 +341,17 @@ export default function BulkGeneratePage() {
                 </div>
               </div>
 
+              {!hasAnthropicKey && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+                  Anthropic API key required — add it in{' '}
+                  <a href="/settings" className="underline hover:no-underline">Settings → API & Integrations</a>
+                </p>
+              )}
               <Button
                 className="w-full"
                 disabled={!canGenerate}
                 onClick={handleGenerate}
+                title={!hasAnthropicKey ? 'Add your Anthropic API key in Settings → API & Integrations' : undefined}
               >
                 {generating ? (
                   <>

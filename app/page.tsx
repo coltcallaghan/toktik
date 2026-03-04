@@ -51,7 +51,7 @@ export default function LandingPage() {
       price: 'Free',
       description: 'Perfect for testing',
       features: [
-        '1 social account',
+        '2 social accounts',
         'Unlimited AI generations*',
         'Basic analytics',
         'Content scheduling',
@@ -66,7 +66,7 @@ export default function LandingPage() {
       period: '/month',
       description: 'For content creators',
       features: [
-        '10 social accounts',
+        '20 social accounts',
         'Unlimited AI generations*',
         'Advanced analytics',
         'A/B testing',

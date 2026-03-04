@@ -17,6 +17,7 @@ import {
   FlaskConical,
   ChevronDown,
   ChevronUp,
+  Zap,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,9 +73,14 @@ export default function ABTestingPage() {
   // Actions
   const [pickingWinner, setPickingWinner] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [planAllowed, setPlanAllowed] = useState<boolean | null>(null);
 
   useEffect(() => {
     loadAll();
+    fetch('/api/user-plan')
+      .then((r) => r.json())
+      .then((d) => setPlanAllowed(d.config?.features?.abTesting === true))
+      .catch(() => setPlanAllowed(false));
   }, []);
 
   async function loadAll() {
@@ -180,10 +186,29 @@ export default function ABTestingPage() {
 
   /* ── Render ─────────────────────────────────────────────────────── */
 
-  if (loading) {
+  if (loading || planAllowed === null) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!planAllowed) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
+        <FlaskConical className="h-12 w-12 text-muted-foreground/40" />
+        <h2 className="text-2xl font-bold">A/B Testing is a Creator feature</h2>
+        <p className="text-muted-foreground max-w-sm">
+          Test multiple content variations and find what performs best. Upgrade to Creator or Agency to unlock this.
+        </p>
+        <a
+          href="/settings?tab=billing"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <Zap className="h-4 w-4" />
+          Upgrade Plan
+        </a>
       </div>
     );
   }

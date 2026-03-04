@@ -41,8 +41,21 @@ export default function ContentPage() {
   const [heygenGenerating, setHeygenGenerating] = useState<string | null>(null);
   const [heygenStatus, setHeygenStatus] = useState<Record<string, string>>({});
   const [heygenModalTarget, setHeygenModalTarget] = useState<string | null>(null);
+  const [configuredKeys, setConfiguredKeys] = useState<Record<string, boolean>>({});
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); fetchConfiguredKeys(); }, []);
+
+  async function fetchConfiguredKeys() {
+    try {
+      const res = await fetch('/api/user-api-keys');
+      const data = await res.json();
+      const map: Record<string, boolean> = {};
+      for (const provider of Object.keys(data.configured ?? {})) {
+        map[provider] = true;
+      }
+      setConfiguredKeys(map);
+    } catch { /* ignore */ }
+  }
 
   async function fetchAll() {
     setLoading(true);
@@ -368,8 +381,8 @@ export default function ContentPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => heygenGenerating === item.id ? null : handleRunway(item.id)}
-                            disabled={heygenGenerating === item.id}
-                            title="Generate AI video from script (Runway Gen-4)"
+                            disabled={heygenGenerating === item.id || !configuredKeys['runway']}
+                            title={!configuredKeys['runway'] ? 'Add your Runway API key in Settings → API & Integrations' : 'Generate AI video from script (Runway Gen-4)'}
                           >
                             {heygenGenerating === item.id
                               ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -385,8 +398,8 @@ export default function ContentPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => heygenGenerating === item.id ? null : setHeygenModalTarget(item.id)}
-                            disabled={heygenGenerating === item.id}
-                            title="Generate talking-head avatar video (HeyGen)"
+                            disabled={heygenGenerating === item.id || !configuredKeys['heygen']}
+                            title={!configuredKeys['heygen'] ? 'Add your HeyGen API key in Settings → API & Integrations' : 'Generate talking-head avatar video (HeyGen)'}
                           >
                             <Bot className="h-3.5 w-3.5" />
                             <span className="ml-1.5 text-xs">Avatar</span>
@@ -398,7 +411,7 @@ export default function ContentPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                window.location.href = '/scheduler';
+                                window.location.href = '/publish?tab=schedule';
                               }}
                               title="Schedule for auto-posting"
                             >
@@ -412,7 +425,7 @@ export default function ContentPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              window.location.href = `/distribute?content=${item.id}`;
+                              window.location.href = `/publish?tab=distribute&content=${item.id}`;
                             }}
                             title="Repurpose for YouTube Shorts, Instagram Reels, etc."
                           >
@@ -680,7 +693,14 @@ export default function ContentPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium">Script</label>
-                  <Button type="button" variant="outline" size="sm" onClick={handleGenerateScript} disabled={generating || !title}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateScript}
+                    disabled={generating || !title || !configuredKeys['anthropic']}
+                    title={!configuredKeys['anthropic'] ? 'Add your Anthropic API key in Settings → API & Integrations' : undefined}
+                  >
                     {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                     Generate with AI
                   </Button>

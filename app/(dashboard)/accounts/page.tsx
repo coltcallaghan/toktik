@@ -17,6 +17,7 @@ import { AccountThemePanel } from '@/components/account-theme-panel';
 import { AccountCredentialsPanel } from '@/components/account-credentials-panel';
 import { AccountSetupSuggestions } from '@/components/account-setup-suggestions';
 import clsx from 'clsx';
+import type { Plan, PlanConfig } from '@/lib/plan';
 
 /* ------------------------------------------------------------------ */
 /*  Platform config                                                    */
@@ -102,6 +103,8 @@ export default function AccountsPage() {
 
 function AccountsPageInner() {
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [plan, setPlan] = useState<Plan>('free');
+  const [planConfig, setPlanConfig] = useState<PlanConfig | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState<string | null>(null);
@@ -123,7 +126,12 @@ function AccountsPageInner() {
   const connectedPlatformLabel = connectedPlatform ? PLATFORMS[connectedPlatform]?.label ?? 'Platform' : 'Platform';
   const oauthError = searchParams.get('error');
 
-  useEffect(() => { fetchAccounts(); }, []);
+  useEffect(() => {
+    fetchAccounts();
+    fetch('/api/user-plan').then((r) => r.json()).then((d) => {
+      if (d.plan) { setPlan(d.plan); setPlanConfig(d.config); }
+    }).catch(() => {});
+  }, []);
 
   async function fetchAccounts() {
     setLoading(true);
@@ -201,6 +209,9 @@ function AccountsPageInner() {
     );
   }
 
+  const accountLimit = planConfig?.accountLimit ?? 1;
+  const atLimit = accountLimit !== -1 && accounts.length >= accountLimit;
+
   const filtered = accounts.filter((a) => {
     const matchSearch = a.platform_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (a.display_name || '').toLowerCase().includes(searchTerm.toLowerCase());
@@ -223,20 +234,33 @@ function AccountsPageInner() {
           <p className="text-muted-foreground">Manage your social media accounts across all platforms</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowConnect(!showConnect)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <LinkIcon className="h-4 w-4" />
-            Connect Platform
-          </button>
-          <button
-            onClick={() => setShowAdd(!showAdd)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Add Manually
-          </button>
+          {atLimit ? (
+            <a
+              href="/settings?tab=billing"
+              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 transition-colors"
+              title={`${planConfig?.name ?? 'Free'} plan: ${accountLimit} account limit. Upgrade to add more.`}
+            >
+              <Plus className="h-4 w-4" />
+              Upgrade to Add More
+            </a>
+          ) : (
+            <>
+              <button
+                onClick={() => setShowConnect(!showConnect)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <LinkIcon className="h-4 w-4" />
+                Connect Platform
+              </button>
+              <button
+                onClick={() => setShowAdd(!showAdd)}
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Add Manually
+              </button>
+            </>
+          )}
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import {
   ExternalLink,
   Check,
   Copy,
+  Loader2,
   RefreshCw,
   ChevronDown,
   ChevronUp,
@@ -149,6 +150,11 @@ export default function SettingsPage() {
   const [savingProvider, setSavingProvider] = useState<string | null>(null);
   const [providerMsg, setProviderMsg] = useState<Record<string, string>>({});
 
+  /* ── Plan / Billing ─────────────────────────────────────────────── */
+  const [currentPlan, setCurrentPlan] = useState<string>('free');
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [upgradeMsg, setUpgradeMsg] = useState('');
+
   /* ── Preferences ────────────────────────────────────────────────── */
   const [prefs, setPrefs] = useState({
     emailContent: true,
@@ -167,6 +173,7 @@ export default function SettingsPage() {
     loadUserData();
     loadServices();
     loadConfiguredProviders();
+    fetch('/api/user-plan').then((r) => r.json()).then((d) => { if (d.plan) setCurrentPlan(d.plan); }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -437,6 +444,31 @@ export default function SettingsPage() {
   }
 
   /* ================================================================ */
+  /*  Billing                                                          */
+  /* ================================================================ */
+
+  async function handleUpgrade(tier: string) {
+    setUpgrading(tier);
+    setUpgradeMsg('');
+    try {
+      const res = await fetch('/api/billing/stripe-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setUpgradeMsg(data.error ?? 'Stripe not configured yet — add STRIPE_SECRET_KEY and STRIPE_PRICE_* to .env.local');
+      }
+    } catch {
+      setUpgradeMsg('Failed to start checkout');
+    }
+    setUpgrading(null);
+  }
+
+  /* ================================================================ */
   /*  Preferences                                                      */
   /* ================================================================ */
 
@@ -475,9 +507,10 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="account" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="api">API & Integrations</TabsTrigger>
+          <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
         </TabsList>
 
@@ -951,6 +984,90 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ── Billing ──────────────────────────────────────────────── */}
+        <TabsContent value="billing" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Plan</CardTitle>
+              <CardDescription>Your active subscription</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-1.5 text-sm font-semibold capitalize">
+                {currentPlan === 'free' ? 'Starter (Free)' : currentPlan === 'creator' ? 'Creator — $29/mo' : 'Agency — $99/mo'}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Starter */}
+            <Card className={currentPlan === 'free' ? 'border-primary' : ''}>
+              <CardHeader>
+                <CardTitle className="text-lg">Starter</CardTitle>
+                <CardDescription>Perfect for testing</CardDescription>
+                <p className="text-3xl font-bold mt-2">Free</p>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <p>✓ 2 social accounts</p>
+                <p>✓ Unlimited AI generations*</p>
+                <p>✓ Basic analytics</p>
+                <p>✓ Content scheduling</p>
+              </CardContent>
+            </Card>
+
+            {/* Creator */}
+            <Card className={currentPlan === 'creator' ? 'border-primary' : 'border-primary/30'}>
+              <CardHeader>
+                <div className="inline-block rounded-full bg-primary text-primary-foreground text-xs px-2 py-0.5 font-medium mb-2">Most Popular</div>
+                <CardTitle className="text-lg">Creator</CardTitle>
+                <CardDescription>For content creators</CardDescription>
+                <p className="text-3xl font-bold mt-2">$29<span className="text-base font-normal text-muted-foreground">/mo</span></p>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <p>✓ 20 social accounts</p>
+                <p>✓ Unlimited AI generations*</p>
+                <p>✓ Advanced analytics</p>
+                <p>✓ A/B testing</p>
+                <p>✓ Bulk content generation</p>
+                {currentPlan !== 'creator' && currentPlan !== 'agency' && (
+                  <Button className="w-full mt-4" onClick={() => handleUpgrade('creator')} disabled={upgrading === 'creator'}>
+                    {upgrading === 'creator' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Redirecting…</> : 'Upgrade to Creator'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Agency */}
+            <Card className={currentPlan === 'agency' ? 'border-primary' : ''}>
+              <CardHeader>
+                <CardTitle className="text-lg">Agency</CardTitle>
+                <CardDescription>For agencies & teams</CardDescription>
+                <p className="text-3xl font-bold mt-2">$99<span className="text-base font-normal text-muted-foreground">/mo</span></p>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <p>✓ Unlimited social accounts</p>
+                <p>✓ Unlimited AI generations*</p>
+                <p>✓ Full analytics suite</p>
+                <p>✓ Team management</p>
+                <p>✓ Approval workflows</p>
+                <p>✓ 24/7 priority support</p>
+                {currentPlan !== 'agency' && (
+                  <Button className="w-full mt-4" onClick={() => handleUpgrade('agency')} disabled={upgrading === 'agency'}>
+                    {upgrading === 'agency' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Redirecting…</> : 'Upgrade to Agency'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {upgradeMsg && (
+            <p className="text-sm text-amber-600 bg-amber-500/10 rounded-md px-4 py-3">{upgradeMsg}</p>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            * Unlimited AI generations subject to your own API key quotas (Anthropic, Runway, HeyGen). AudienceAI does not charge per generation.
+          </p>
         </TabsContent>
       </Tabs>
     </div>

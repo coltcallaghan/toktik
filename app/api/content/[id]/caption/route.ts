@@ -125,19 +125,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'No script found on this content' }, { status: 400 });
     }
 
-    // Get a signed URL for the video (Creatomate fetches it)
-    const { data: signed, error: signError } = await supabase.storage
-      .from('videos')
-      .createSignedUrl(content.video_url, 3600);
-
-    if (signError || !signed?.signedUrl) {
-      return NextResponse.json({ error: 'Failed to get video URL' }, { status: 500 });
+    // Get the URL Creatomate will fetch the video from.
+    // External URLs (HeyGen, Runway) are already public — use directly.
+    // Supabase storage paths need a signed URL.
+    let videoUrlForCreatomate: string;
+    if (content.video_url.startsWith('http')) {
+      videoUrlForCreatomate = content.video_url;
+    } else {
+      const { data: signed, error: signError } = await supabase.storage
+        .from('videos')
+        .createSignedUrl(content.video_url, 3600);
+      if (signError || !signed?.signedUrl) {
+        return NextResponse.json({ error: 'Failed to get video URL' }, { status: 500 });
+      }
+      videoUrlForCreatomate = signed.signedUrl;
     }
 
     // Build caption chunks
     const chunks = buildCaptionChunks(content.script);
     const totalDuration = chunks.reduce((acc, c) => Math.max(acc, c.start + c.duration), 0);
-    const renderScript = buildRenderScript(signed.signedUrl, chunks, Math.ceil(totalDuration));
+    const renderScript = buildRenderScript(videoUrlForCreatomate, chunks, Math.ceil(totalDuration));
 
     // Submit render to Creatomate
     const renderRes = await fetch(CREATOMATE_API, {
