@@ -5,55 +5,64 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import {
-  Activity,
-  BarChart3,
   Binoculars,
   Bot,
-  BrainCircuit,
-  Building2,
-  CalendarClock,
-  CreditCard,
-  FlaskConical,
   Flame,
+  FlaskConical,
+  Home,
   Layers,
-  ScrollText,
-  Share2,
+  LogOut,
+  Send,
+  Settings,
   ShieldCheck,
+  TrendingUp,
   Users,
   Video,
-  Webhook,
-  Settings,
-  LogOut,
-  Home,
-  TrendingUp,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
+
+const NAV_GROUPS = [
+  {
+    label: null,
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: Home },
+      { href: '/accounts', label: 'Accounts', icon: Users },
+    ],
+  },
+  {
+    label: 'Create',
+    items: [
+      { href: '/content', label: 'Content', icon: Video },
+      { href: '/bulk-generate', label: 'Bulk Generate', icon: Layers },
+      { href: '/ab-testing', label: 'A/B Testing', icon: FlaskConical },
+    ],
+  },
+  {
+    label: 'Publish',
+    items: [
+      { href: '/publish', label: 'Publish & Schedule', icon: Send },
+      { href: '/approvals', label: 'Approvals', icon: ShieldCheck },
+    ],
+  },
+  {
+    label: 'Grow',
+    items: [
+      { href: '/trends', label: 'Trends', icon: TrendingUp },
+      { href: '/competitors', label: 'Competitors', icon: Binoculars },
+      { href: '/comment-bot', label: 'Comment Bot', icon: Bot },
+    ],
+  },
+  {
+    label: null,
+    items: [
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-
-  const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/accounts', label: 'Accounts', icon: Users },
-    { href: '/content', label: 'Content', icon: Video },
-    { href: '/distribute', label: 'Distribute', icon: Share2 },
-    { href: '/scheduler', label: 'Scheduler', icon: CalendarClock },
-    { href: '/ab-testing', label: 'A/B Testing', icon: FlaskConical },
-    { href: '/bulk-generate', label: 'Bulk Generate', icon: Layers },
-    { href: '/engagement', label: 'Engagement', icon: Activity },
-    { href: '/teams', label: 'Teams', icon: BarChart3 },
-    { href: '/trends', label: 'Trends', icon: TrendingUp },
-    { href: '/trend-prediction', label: 'Predictions', icon: BrainCircuit },
-    { href: '/competitors', label: 'Competitors', icon: Binoculars },
-    { href: '/comment-bot', label: 'Comment Bot', icon: Bot },
-    { href: '/approvals', label: 'Approvals', icon: ShieldCheck },
-    { href: '/webhooks', label: 'Webhooks', icon: Webhook },
-    { href: '/audit-log', label: 'Audit Log', icon: ScrollText },
-    { href: '/billing', label: 'Billing', icon: CreditCard },
-    { href: '/agency', label: 'Agency', icon: Building2 },
-    { href: '/settings', label: 'Settings', icon: Settings },
-  ];
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 border-r border-border bg-card flex flex-col">
@@ -66,25 +75,36 @@ export function Sidebar() {
         </div>
       </Link>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={clsx(
-                'flex items-center gap-3 rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-foreground hover:bg-muted'
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto p-4 space-y-4">
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={gi}>
+            {group.label && (
+              <p className="px-4 pb-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map(({ href, label, icon: Icon }) => {
+                const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={clsx(
+                      'flex items-center gap-3 rounded-md px-4 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-foreground hover:bg-muted'
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div className="shrink-0 border-t border-border p-4">

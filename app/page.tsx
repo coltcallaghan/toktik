@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Sparkles, Zap, Users, BarChart3, Lock, ArrowRight, Lightbulb } from 'lucide-react';
+import { Check, Sparkles, Zap, Users, BarChart3, KeyRound, ArrowRight, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LandingPage() {
@@ -38,9 +38,9 @@ export default function LandingPage() {
       color: 'from-yellow-500 to-orange-500',
     },
     {
-      icon: Lock,
-      title: 'Enterprise Security',
-      description: 'Bank-level encryption, OAuth security, and row-level data protection',
+      icon: KeyRound,
+      title: 'Bring Your Own API Keys',
+      description: 'Connect your own Runway, HeyGen, or Anthropic keys. Zero usage markups — you pay AI providers directly at their rates.',
       color: 'from-indigo-500 to-purple-500',
     },
   ];
@@ -51,9 +51,10 @@ export default function LandingPage() {
       price: 'Free',
       description: 'Perfect for testing',
       features: [
-        '20 AI generations/month',
         '1 social account',
+        'Unlimited AI generations*',
         'Basic analytics',
+        'Content scheduling',
         'Email support',
       ],
       cta: 'Get Started',
@@ -65,11 +66,12 @@ export default function LandingPage() {
       period: '/month',
       description: 'For content creators',
       features: [
-        '200 AI generations/month',
-        '5 social accounts',
+        '10 social accounts',
+        'Unlimited AI generations*',
         'Advanced analytics',
+        'A/B testing',
+        'Bulk content generation',
         'Priority support',
-        'Team collaboration',
       ],
       cta: 'Start Free Trial',
       highlighted: true,
@@ -80,12 +82,12 @@ export default function LandingPage() {
       period: '/month',
       description: 'For agencies & teams',
       features: [
-        '1000 AI generations/month',
-        'Unlimited accounts',
+        'Unlimited social accounts',
+        'Unlimited AI generations*',
         'Full analytics suite',
-        '24/7 priority support',
         'Team management',
-        'API access',
+        'Approval workflows',
+        '24/7 priority support',
       ],
       cta: 'Contact Sales',
       highlighted: false,
@@ -131,7 +133,7 @@ export default function LandingPage() {
           </p>
 
           <div className="inline-block bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 px-6 py-2 rounded-full hover:border-blue-500/40 transition-colors">
-            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">✨ AI-Powered Social Media Management</span>
+            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">✨ Bring Your Own API Keys — No usage limits, no markups</span>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
@@ -148,7 +150,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-base text-muted-foreground pt-2">
-            No credit card. No commitments. Free tier includes 20 AI-powered generations.
+            No credit card required. Connect your own Runway, HeyGen, or Anthropic API keys and generate unlimited content.
           </p>
         </div>
 
@@ -249,11 +251,50 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* BYOK Section */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="bg-gradient-to-br from-indigo-500/5 via-background to-purple-500/5 rounded-2xl border-2 border-indigo-500/20 p-10 sm:p-14">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 rounded-full">
+                <KeyRound className="h-4 w-4 text-indigo-500" />
+                <span className="text-sm font-semibold text-indigo-500">How AI billing works</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold">You own your AI costs</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                AudienceAI is the platform layer — scheduling, publishing, analytics, and team management. For AI features (script generation, video creation, voice), you connect your own API keys from Anthropic, Runway, and HeyGen.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                You pay those providers directly at their published rates. We never mark up AI costs or cap your usage. The more you generate, the more you save versus any all-in-one tool.
+              </p>
+            </div>
+            <div className="space-y-4">
+              {[
+                { name: 'Anthropic (Claude)', use: 'Script & caption generation', note: 'From ~$0.001 per post' },
+                { name: 'Runway ML', use: 'AI text-to-video generation', note: 'From ~$0.05 per second of video' },
+                { name: 'HeyGen', use: 'AI avatar talking-head video', note: 'Based on your HeyGen plan' },
+              ].map((provider) => (
+                <div key={provider.name} className="flex items-start gap-4 bg-card rounded-xl border border-border p-4">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10">
+                    <KeyRound className="h-4 w-4 text-indigo-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">{provider.name}</p>
+                    <p className="text-xs text-muted-foreground">{provider.use}</p>
+                    <p className="text-xs text-indigo-400 mt-0.5">{provider.note}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 space-y-16">
         <div className="text-center space-y-4">
           <h2 className="text-4xl sm:text-5xl font-bold">Pricing that grows with you</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Start free, upgrade when you're ready. No hidden fees.</p>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Platform access only. AI usage billed directly by Anthropic, Runway & HeyGen at their rates.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-6">
@@ -300,6 +341,10 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+
+        <p className="text-center text-sm text-muted-foreground">
+          * Unlimited AI generations subject to your own API key quotas with Anthropic, Runway, and HeyGen. You pay those providers directly.
+        </p>
       </section>
 
       {/* CTA Section */}
